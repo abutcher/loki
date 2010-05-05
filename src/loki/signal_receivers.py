@@ -12,7 +12,6 @@ import os
 
 from loki.settings import *
 from loki.helpers import generate_master_cfg
-from loki.model_helpers import build_bot_run
 from buildbot.scripts.runner import Options, createMaster
 
 
@@ -28,18 +27,18 @@ def post_save_bot(sender, instance, created, **kwargs):
     """
     # create bot if new
     if created:
-        build_bot_run(instance.buildbot_create)
+        instance.bot_create()
 
     # update the config file
-    instance.generate_cfg()
+    instance.bot_cfg()
 
     if hasattr(instance, 'master'):
-        instance.master.generate_cfg()
+        instance.master.bot_cfg()
         if instance.master.alive:
-            build_bot_run(['sighup', instance.master.path])
+            instance.master.bot_hup()
 
     if instance.alive:
-        build_bot_run(['sighup', instance.path])
+        instance.bot_hup()
 
 
 def post_delete_bot(sender, instance, **kwargs):
@@ -54,12 +53,10 @@ def post_delete_bot(sender, instance, **kwargs):
     # stop bot
     bot_path = os.path.join(BUILDBOT_MASTERS, instance.name)
     if instance.alive:
-        build_bot_run(['stop', instance.path])
+        instance.bot_stop()
 
     # delete bot
-    if os.path.isdir(instance.path):
-        import shutil
-        shutil.rmtree(instance.path)
+    instance.bot_delete()
 
 
 def post_save_config(sender, instance, **kwargs):
@@ -79,6 +76,6 @@ def post_save_config(sender, instance, **kwargs):
         master = instance.slave.master
 
     # regen and hup
-    master.generate_cfg()
+    master.bot_cfg()
     if master.alive:
-        build_bot_run(['sighup', master.path])
+        master.bot_hup()

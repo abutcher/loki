@@ -42,6 +42,9 @@ except:
 
 class Host(models.Model):
     hostname = models.CharField(max_length=200, unique=True)
+    username = models.CharField(max_length=10, blank=True, null=True)
+    password = models.CharField(max_length=50, blank=True, null=True)
+    base_dir = models.CharField(max_length=200, blank=True, null=True)
 
     def __unicode__(self):
         return self.hostname
@@ -49,14 +52,96 @@ class Host(models.Model):
 
 class Bot(models.Model):
 
+    alive = property(lambda self: self.pid() and \
+                os.path.exists(os.path.join('/proc', str(self.pid()))))
+
     class Meta(object):
         """
         Meta attributes for Package.
         """
         abstract = True
 
-    def buildbot_run(self, action):
-        build_bot_run([action, self.path])
+    def bot_run(self, action):
+        actions = {
+            'start': self.start,
+            'stop': self.stop,
+            'restart': self.restart,
+            'hup': self.hup,
+            'create': self.create,
+        }
+        actions[action]()
+
+    def bot_start(self):
+        self._run('start')
+
+    def bot_stop(self):
+        self._run('stop')
+        return 1
+
+    def bot_restart(self):
+        self._run('restart')
+
+    def bot_hup(self):
+        self._run('hup')
+
+    def bot_cfg(self):
+        self._run('cfg')
+
+    def bot_create(self):
+        self._run('create')
+
+    def bot_delete(self):
+        if self.host.id == 1:
+            if os.path.isdir(self.path):
+                import shutil
+                shutil.rmtree(self.path)
+        else:
+            self._run('delete')
+        return 1
+
+    def _run(self, action):
+        # run commands based on remote or local
+        if self.host.id == 1:
+            # local bot
+            if action == 'cfg':
+                content = self.generate_cfg()
+                cfg_file = os.path.join(self.path, self.cfg_file)
+                cfg = open(cfg_file, 'w')
+                cfg.write(content)
+                cfg.close()
+            if action == 'create':
+                action = self.buildbot_create % self.path
+            build_bot_run(action.split(' '))
+        else:
+            # remote bot
+            import paramiko
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(self.host.hostname,
+                        username=self.host.username,
+                        password=self.host.password,
+                allow_agent=True, look_for_keys=True)
+            path = os.path.join(self.host.base_dir, self.name)
+            if action == 'cfg':
+                content = self.generate_cfg()
+                cfg_file = os.path.join(path, self.cfg_file)
+                sftp = ssh.open_sftp()
+                f = sftp.file(cfg_file, 'w')
+                f.write(content)
+                f.close()
+                sftp.close()
+            else:
+                if action == 'create':
+                    command = 'buildbot %s' % self.buildbot_create % path
+                elif action == 'delete':
+                    command = 'rm -rf %s' % path
+                else:
+                    command = 'buildbot %s %s' % (action, path)
+                stdin, stdout, stderr = ssh.exec_command(command)
+                print stdout.readlines()
+                print stderr.readlines()
+            ssh.close()
+
 
     def pid(self):
         pid = 0
@@ -67,9 +152,6 @@ class Bot(models.Model):
             pid_fd.close()
         return int(pid)
 
-    alive = property(lambda self: self.pid() and \
-                os.path.exists(os.path.join('/proc', str(self.pid()))))
-
 
 class Master(Bot):
     host = models.ForeignKey(Host, related_name='masters')
@@ -78,7 +160,8 @@ class Master(Bot):
     web_port = models.IntegerField(max_length=5)
 
     path = property(lambda self: os.path.join(BUILDBOT_MASTERS, self.name))
-    buildbot_create = property(lambda self: ['create-master', self.path])
+    buildbot_create = 'create-master %s'
+    cfg_file = 'master.cfg'
 
     def __unicode__(self):
         return self.name
@@ -132,7 +215,7 @@ class Master(Bot):
                          x.module.split('.')[-1])
 
         #generate the template
-        t = _template('%smaster.cfg.tpl' % BUILDBOT_TMPLS,
+        return _template('%smaster.cfg.tpl' % BUILDBOT_TMPLS,
                 botname=self.name,
                 webhost=self.host,
                 webport=self.web_port,
@@ -143,9 +226,6 @@ class Master(Bot):
                 builders=','.join(builders),
                 statuses=statuses,
                 schedulers=schedulers)
-        cfg = open(os.path.join(self.path, 'master.cfg'), 'w')
-        cfg.write(t)
-        cfg.close()
 
 
 class Slave(Bot):
@@ -155,24 +235,20 @@ class Slave(Bot):
     passwd = models.SlugField(max_length=25)
 
     path = property(lambda self: os.path.join(BUILDBOT_SLAVES, self.name))
-    buildbot_create = property(lambda self: ['create-slave', self.path,
-                        '%s:%s' % (self.master.host, self.master.slave_port),
-                        self.name, self.passwd])
+    buildbot_create = property(lambda self: 'create-slave %%s %s:%s %s %s' % \
+        (self.master.host, self.master.slave_port, self.name, self.passwd))
+    cfg_file = 'buildbot.tac'
 
     def __unicode__(self):
         return self.name
 
     def generate_cfg(self):
-        t = _template('%sslave.cfg.tpl' % BUILDBOT_TMPLS,
+        return _template('%sslave.cfg.tpl' % BUILDBOT_TMPLS,
                 basedir=os.path.abspath(self.path),
                 masterhost=self.master.host,
                 slavename=self.name,
                 slaveport=self.master.slave_port,
                 slavepasswd=self.passwd)
-        cfg = open(os.path.join(self.path, 'buildbot.tac'), 'w')
-        cfg.write(t)
-        cfg.close()
-
 
 class Config(models.Model):
     """
@@ -260,6 +336,8 @@ class SchedulerParam(models.Model):
         return '%s :: %s' % (self.scheduler, self.val)
 
 bind_administration('loki.models', 'loki.admin')
+#post_save.connect(post_save_bot, sender=Bot)
+#post_delete.connect(post_delete_bot, sender=Bot)
 post_save.connect(post_save_bot, sender=Master)
 post_delete.connect(post_delete_bot, sender=Master)
 post_save.connect(post_save_bot, sender=Slave)

@@ -141,9 +141,9 @@ def build_bot_run(options):
             os.makedirs(BUILDBOT_SLAVES)
         createSlave(so)
     elif command == "start":
-    ## adapted from
-    ## http://stackoverflow.com/questions/972362/spawning-process-from-python
-    ## similar recipe http://code.activestate.com/recipes/278731/
+        ## adapted from
+        ## http://stackoverflow.com/questions/972362/spawning-process-from-python
+        ## similar recipe http://code.activestate.com/recipes/278731/
         child_pid = os.fork()
         if child_pid == 0:
             # forked child becomes session leader
@@ -181,7 +181,6 @@ def build_bot_run(options):
                 # done with child process
                 os._exit(0)
         else:
-            print 'waiting'
             os.waitpid(child_pid, 0)
 
     elif command == "stop":
