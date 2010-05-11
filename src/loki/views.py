@@ -50,7 +50,7 @@ def home(request, master=None, slave=None):
             context['slave'] = slaves[0]
         if action:
             for slave in slaves:
-                slave.buildbot_run(action)
+                slave.bot_run(action)
             time.sleep(1)
             if len(slaves) == 1:
                 return HttpResponseRedirect(reverse('loki.views.home',
@@ -65,7 +65,7 @@ def home(request, master=None, slave=None):
             context['master'] = masters[0]
         if action:
             for master in masters:
-                master.buildbot_run(action)
+                master.bot_run(action)
             time.sleep(1)
             if len(masters) == 1:
                 return HttpResponseRedirect(reverse('loki.views.home',

@@ -52,8 +52,9 @@ class Host(models.Model):
 
 class Bot(models.Model):
 
-    alive = property(lambda self: self.pid() and \
-                os.path.exists(os.path.join('/proc', str(self.pid()))))
+    alive = property(lambda self: (self.host.id > 1 and self.pid()) or \
+                (self.pid() and \
+                 os.path.exists(os.path.join('/proc', str(self.pid())))))
 
     class Meta(object):
         """
@@ -63,11 +64,11 @@ class Bot(models.Model):
 
     def bot_run(self, action):
         actions = {
-            'start': self.start,
-            'stop': self.stop,
-            'restart': self.restart,
-            'hup': self.hup,
-            'create': self.create,
+            'start': self.bot_start,
+            'stop': self.bot_stop,
+            'restart': self.bot_restart,
+            'hup': self.bot_hup,
+            'create': self.bot_create,
         }
         actions[action]()
 
@@ -109,8 +110,11 @@ class Bot(models.Model):
                 cfg = open(cfg_file, 'w')
                 cfg.write(content)
                 cfg.close()
-            if action == 'create':
+            elif action == 'create':
                 action = self.buildbot_create % self.path
+            else:
+                action = '%s %s' % (action, self.path)
+            print action.split(' ')
             build_bot_run(action.split(' '))
         else:
             # remote bot
@@ -145,11 +149,34 @@ class Bot(models.Model):
 
     def pid(self):
         pid = 0
-        pid_file = os.path.join(self.path, 'twistd.pid')
-        if os.path.exists(pid_file):
-            pid_fd = open(pid_file, 'r')
-            pid = pid_fd.read()
-            pid_fd.close()
+        if self.host.id == 1:
+            # local bot
+            pid_file = os.path.join(self.path, 'twistd.pid')
+            if os.path.exists(pid_file):
+                pid_fd = open(pid_file, 'r')
+                pid = pid_fd.read()
+                pid_fd.close()
+        else:
+            # remote bot
+            import paramiko
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(self.host.hostname,
+                        username=self.host.username,
+                        password=self.host.password,
+                allow_agent=True, look_for_keys=True)
+            sftp = ssh.open_sftp()
+            path = os.path.join(self.host.base_dir, self.name)
+            pid_file = os.path.join(path, 'twistd.pid')
+            try:
+                f = sftp.file(pid_file, 'r')
+                pid = f.readline()
+                f.close()
+            except:
+                # for now we'll just assume the file didn't exist
+                pass
+            sftp.close()
+            ssh.close()
         return int(pid)
 
 
