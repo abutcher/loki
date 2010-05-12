@@ -6,11 +6,29 @@ from loki.models import *
 class Migration:
     
     def forwards(self, orm):
-        "Write your forwards migration here"
+        
+        # Adding field 'Host.password'
+        db.add_column('loki_host', 'password', orm['loki.host:password'])
+        
+        # Adding field 'Host.username'
+        db.add_column('loki_host', 'username', orm['loki.host:username'])
+        
+        # Adding field 'Host.base_dir'
+        db.add_column('loki_host', 'base_dir', orm['loki.host:base_dir'])
+        
     
     
     def backwards(self, orm):
-        "Write your backwards migration here"
+        
+        # Deleting field 'Host.password'
+        db.delete_column('loki_host', 'password')
+        
+        # Deleting field 'Host.username'
+        db.delete_column('loki_host', 'username')
+        
+        # Deleting field 'Host.base_dir'
+        db.delete_column('loki_host', 'base_dir')
+        
     
     
     models = {
