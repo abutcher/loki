@@ -7,7 +7,7 @@
         });
     {% endblock %}
     {% block drawer_title %}
-        {% if slave.alive %}Running{% if user.is_superuser %} <a href="{% url loki.views.home slave.master,slave %}?action=reconfig">reconfig/hup</a>
+        {% if slave.alive %}Running{% if user.is_superuser %} <a href="{% url loki.views.home slave.master,slave %}?action=hup">hup</a>
             :: pid {{ slave.pid }} :: <a href="{% url loki.views.home slave.master,slave %}?action=stop">Stop</a>{% endif %}
         {% else %}Stopped{% if user.is_superuser %} :: <a href="{% url loki.views.home slave.master,slave %}?action=start">Start</a>{% endif %}{% endif %}
     {% endblock %}

@@ -11,7 +11,7 @@
         });
     {% endblock %}
     {% block drawer_title %}
-        {% if master.alive %}Running{% if user.is_superuser %} <a href="{% url loki.views.home master %}?action=reconfig">reconfig/hup</a>
+        {% if master.alive %}Running{% if user.is_superuser %} <a href="{% url loki.views.home master %}?action=hup">hup</a>
             :: pid {{ master.pid }} :: <a href="{% url loki.views.home master %}?action=stop">Stop</a>{% endif %}
         {% else %}Stopped{% if user.is_superuser %} :: <a href="{% url loki.views.home master %}?action=start">Start</a>{% endif %}{% endif %}
     {% endblock %}
