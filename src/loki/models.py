@@ -42,9 +42,9 @@ except:
 
 class Host(models.Model):
     hostname = models.CharField(max_length=200, unique=True)
+    base_dir = models.CharField(max_length=200)
     username = models.CharField(max_length=10, blank=True, null=True)
     password = models.CharField(max_length=50, blank=True, null=True)
-    base_dir = models.CharField(max_length=200, blank=True, null=True)
 
     uptime = property(lambda self: self._uptime())
 
@@ -141,10 +141,9 @@ class Bot(models.Model):
                         username=self.host.username,
                         password=self.host.password,
                 allow_agent=True, look_for_keys=True)
-            path = os.path.join(self.host.base_dir, self.name)
             if action == 'cfg':
                 content = self.generate_cfg()
-                cfg_file = os.path.join(path, self.cfg_file)
+                cfg_file = os.path.join(self.path, self.cfg_file)
                 sftp = ssh.open_sftp()
                 f = sftp.file(cfg_file, 'w')
                 f.write(content)
@@ -202,7 +201,8 @@ class Master(Bot):
     slave_port = models.IntegerField(max_length=5)
     web_port = models.IntegerField(max_length=5)
 
-    path = property(lambda self: os.path.join(BUILDBOT_MASTERS, self.name))
+    path = property(lambda self: os.path.join(host.base_dir, \
+                                     BUILDBOT_MASTERS, self.name))
     buildbot_create = 'create-master %s'
     cfg_file = 'master.cfg'
 
@@ -277,7 +277,8 @@ class Slave(Bot):
     name = models.SlugField(max_length=25)
     passwd = models.SlugField(max_length=25)
 
-    path = property(lambda self: os.path.join(BUILDBOT_SLAVES, self.name))
+    path = property(lambda self: os.path.join(host.base_dir, \
+                                     BUILDBOT_SLAVES, self.name))
     buildbot_create = property(lambda self: 'create-slave %%s %s:%s %s %s' % \
         (self.master.host, self.master.slave_port, self.name, self.passwd))
     cfg_file = 'buildbot.tac'
