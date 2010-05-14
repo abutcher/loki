@@ -23,14 +23,17 @@ register = template.Library()
 @register.inclusion_tag('loki/ajax/step.html', takes_context=True)
 # The first argument *must* be called "context" here.
 def step(context):
-    return {'step': context['step'], }
+    return {'step': context['step'],
+            'user': context['user'], }
 
 
 @register.inclusion_tag('loki/ajax/status.html', takes_context=True)
 def status(context):
-    return {'status': context['status'], }
+    return {'status': context['status'],
+            'user': context['user'], }
 
 
 @register.inclusion_tag('loki/ajax/scheduler.html', takes_context=True)
 def scheduler(context):
-    return {'scheduler': context['scheduler'], }
+    return {'scheduler': context['scheduler'],
+            'user': context['user'], }
