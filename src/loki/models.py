@@ -151,11 +151,11 @@ class Bot(models.Model):
                 sftp.close()
             else:
                 if action == 'create':
-                    command = 'buildbot %s' % self.buildbot_create % path
+                    command = 'buildbot %s' % self.buildbot_create % self.path
                 elif action == 'delete':
-                    command = 'rm -rf %s' % path
+                    command = 'rm -rf %s' % self.path
                 else:
-                    command = 'buildbot %s %s' % (action, path)
+                    command = 'buildbot %s %s' % (action, self.path)
                 stdin, stdout, stderr = ssh.exec_command(command)
                 print stdout.readlines()
                 print stderr.readlines()
@@ -181,8 +181,7 @@ class Bot(models.Model):
                         password=self.host.password,
                 allow_agent=True, look_for_keys=True)
             sftp = ssh.open_sftp()
-            path = os.path.join(self.host.base_dir, self.name)
-            pid_file = os.path.join(path, 'twistd.pid')
+            pid_file = os.path.join(self.path, 'twistd.pid')
             try:
                 f = sftp.file(pid_file, 'r')
                 pid = f.readline()
