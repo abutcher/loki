@@ -5,8 +5,8 @@
     <div style="float: left; margin-left: 10px; margin-top: 3px;">
         <img class="img_link" src="/admin/media/img/admin/icon_changelink.gif" onClick="javascript:toggleconfig('status', 'edit', {{ status.id }});">
         <img class="img_link" src="/admin/media/img/admin/icon_deletelink.gif" onClick="javascript:toggleconfig('status', 'delete', {{ status.id }});">
-    </div><br>
-    {% endif %}
+    </div>
+    {% endif %}<br>
     {% for p in status.params.all %}
         {{ p.type.name }}: {{ p.val }}<br>
     {% endfor %}

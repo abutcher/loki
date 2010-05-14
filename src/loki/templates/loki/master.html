@@ -21,8 +21,8 @@
         slave/web ports: {{ master.slave_port }}/{{ master.web_port }}<br>
         status:<br>
         <div id="statuss" style="float: left;">
-        {% for s in master.status.all %}
-        {% status s %}
+        {% for status in master.status.all %}
+        {% status %}
         {% endfor %}
         <div id="newstatus" style="float: left; clear: left;"/>
         </div><br>
@@ -37,8 +37,8 @@
             </form>
         {% endif %}
         <div id="schedulers" style="float: left;">
-        {% for s in master.schedulers.all %}
-        {% scheduler s %}
+        {% for scheduler in master.schedulers.all %}
+        {% scheduler %}
         {% endfor %}
         <div id="newscheduler" style="float: left; clear: left;">&nbsp;</div>
         </div><br>

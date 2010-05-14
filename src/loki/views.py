@@ -17,6 +17,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import user_passes_test
 from django.template import RequestContext
 
+from loki.models import Host
 from loki.models import Master, Slave, Config, ConfigParam
 from loki.models import Status, StatusParam
 from loki.models import Step, StepParam
@@ -71,6 +72,7 @@ def home(request, master=None, slave=None):
                 return HttpResponseRedirect(reverse('loki.views.home',
                                             args=[master.name]))
 
+    context['hosts'] = Host.objects.exclude(id=1)
     return render_to_response('loki/%s.html' % render_template, context,
                               context_instance=RequestContext(request))
 

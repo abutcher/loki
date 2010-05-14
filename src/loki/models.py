@@ -46,6 +46,22 @@ class Host(models.Model):
     password = models.CharField(max_length=50, blank=True, null=True)
     base_dir = models.CharField(max_length=200, blank=True, null=True)
 
+    uptime = property(lambda self: self._uptime())
+
+    def _uptime(self):
+        import paramiko
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(self.host.hostname,
+            username=self.host.username,
+            password=self.host.password,
+        allow_agent=True, look_for_keys=True)
+        stdin, stdout, stderr = ssh.exec_command(command)
+        print stdout.readlines()
+        print stderr.readlines()
+        ssh.close()
+        return stdout.readline()
+
     def __unicode__(self):
         return self.hostname
 

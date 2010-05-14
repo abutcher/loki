@@ -17,8 +17,8 @@
         host: {{ slave.host }}<br>
         steps:<br>
         <div id="steps" style="float: left;">
-        {% for s in slave.steps.all %}
-        {% step s %}
+        {% for step in slave.steps.all %}
+        {% step %}
         {% endfor %}
         <div id="newstep" style="float: left; clear: left;"/>
         </div><br>

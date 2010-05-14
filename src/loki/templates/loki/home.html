@@ -20,5 +20,10 @@
         <li><a href="{% url loki.views.home 'all','all' %}?action=hup">Hup</a></li>
         </ul>
         </div>
+        <ul>Hosts
+        {% for host in hosts %}
+        <li>{{ host.hostname }}: {{ host.uptime }}</li>
+        {% endfor %}
+        </ul>
         {% endifequal %}
     {% endblock %}
