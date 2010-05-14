@@ -201,7 +201,7 @@ class Master(Bot):
     slave_port = models.IntegerField(max_length=5)
     web_port = models.IntegerField(max_length=5)
 
-    path = property(lambda self: os.path.join(host.base_dir, \
+    path = property(lambda self: os.path.join(self.host.base_dir, \
                                      BUILDBOT_MASTERS, self.name))
     buildbot_create = 'create-master %s'
     cfg_file = 'master.cfg'
@@ -277,7 +277,7 @@ class Slave(Bot):
     name = models.SlugField(max_length=25)
     passwd = models.SlugField(max_length=25)
 
-    path = property(lambda self: os.path.join(host.base_dir, \
+    path = property(lambda self: os.path.join(self.host.base_dir, \
                                      BUILDBOT_SLAVES, self.name))
     buildbot_create = property(lambda self: 'create-slave %%s %s:%s %s %s' % \
         (self.master.host, self.master.slave_port, self.name, self.passwd))
