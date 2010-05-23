@@ -8,8 +8,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-def generate_master_cfg(master):
 
+def generate_master_cfg(master):
+    """
+    TODO: Document me
+    """
     buildslaves = ''
     builders = []
     factories = ''

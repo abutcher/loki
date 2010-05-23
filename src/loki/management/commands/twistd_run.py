@@ -93,14 +93,14 @@ class AccessLoggingObserver(log.DefaultCommonAccessLoggingObserver):
             return
         response = eventDict["response"]
         loginfo = eventDict["loginfo"]
-        firstLine = "%s %s HTTP/%s" %(
+        firstLine = "%s %s HTTP/%s" % (
             request.method,
             request.uri,
             ".".join([str(x) for x in request.clientproto]))
 
         if self.log_type == "apache":
             self.logMessage(
-                 LOG_FORMAT_APACHE %(
+                 LOG_FORMAT_APACHE % (
                     request.remoteAddr.host,
                     # XXX: Where to get user from?
                     "-",

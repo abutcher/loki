@@ -172,28 +172,29 @@ def get_sources(map_list):
     return file_list
 
 
-setup(name = "Django-app-loki",
-    version = __version__,
-    description = "A buildbot management application",
-    long_description = "A buildbot management application",
-    author = __author__,
-    author_email = 'dradez@redhat.com',
-    url = "http://www.fedorahosted.org/loki/",
-    platforms = ['linux'],
+setup(
+    name="Django-app-loki",
+    version=__version__,
+    description="A buildbot management application",
+    long_description="A buildbot management application",
+    author=__author__,
+    author_email='dradez@redhat.com',
+    url="http://www.fedorahosted.org/loki/",
+    platforms=['linux'],
 
-    license = __license__,
+    license=__license__,
 
-    classifiers = [
+    classifiers=[
         'License :: OSI Approved :: GNU General Public License (GPL)',
         'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python'],
 
-    data_files = get_sources([('share/django/apps/loki',
-                               os.path.join('src',
-                                            'loki'),
-                               True)]),
+    data_files=get_sources([('share/django/apps/loki',
+                             os.path.join('src', 'loki'), True)]),
 
-    cmdclass = {'rpm': RPMBuildCommand,
-                'doc': SphinxCommand,
-                'viewdoc': ViewDocCommand,
-                'test': DjangoTestCommand})
+    cmdclass={
+        'rpm': RPMBuildCommand,
+        'doc': SphinxCommand,
+        'viewdoc': ViewDocCommand,
+        'test': DjangoTestCommand},
+)

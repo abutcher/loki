@@ -23,9 +23,9 @@ import sys
 
 from django.core.management.base import BaseCommand
 
-__author__ = "Spike^ekipS <spikeekips@gmail.com>,\
- Dan Radez <dradez@redhat.com>"
-__version__= "0.1"
+__author__ = ("Spike^ekipS <spikeekips@gmail.com>,"
+    " Dan Radez <dradez@redhat.com>")
+__version__ = "0.1"
 __nonsense__ = ""
 
 

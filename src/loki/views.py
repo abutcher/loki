@@ -31,11 +31,15 @@ from loki.forms import ConfigParamFormSet
 
 
 def home(request, master=None, slave=None):
+    """
+    TODO: document me.
+    """
     context = {}
     context['bots'] = Master.objects.all()
     context['steps'] = Config.objects.filter(content_type=step_content_type)
     context['status'] = Config.objects.filter(content_type=status_content_type)
-    context['scheduler'] = Config.objects.filter(content_type=scheduler_content_type)
+    context['scheduler'] = Config.objects.filter(
+        content_type=scheduler_content_type)
     action = None
     render_template = 'home'
     if request.method == 'GET' and 'action' in request.GET \
@@ -75,7 +79,6 @@ def home(request, master=None, slave=None):
     context['hosts'] = Host.objects.exclude(id=1)
     return render_to_response('loki/%s.html' % render_template, context,
                               context_instance=RequestContext(request))
-
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -223,7 +226,8 @@ def config_scheduler_save(request, bot_id):
         for p, v in data.items():
             param_type = ConfigParam.objects.get(id=p)
             if v != param_type.default:
-                param = SchedulerParam(scheduler=scheduler, type=param_type, val=v)
+                param = SchedulerParam(
+                    scheduler=scheduler, type=param_type, val=v)
                 params_2_add.append(param)
         scheduler.params = params_2_add
         scheduler.save()

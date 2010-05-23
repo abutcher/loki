@@ -161,7 +161,6 @@ class Bot(models.Model):
                 print stderr.readlines()
             ssh.close()
 
-
     def pid(self):
         pid = 0
         if self.host.id == 1:
@@ -247,7 +246,8 @@ class Master(Bot):
 
         #generate schedulers
         for scheduler in self.schedulers.all():
-            schedulers += "c['scheduler'].append(%s)" % _generate_class(scheduler)
+            schedulers += (
+                "c['scheduler'].append(%s)" % _generate_class(scheduler))
             modules.append(scheduler.type)
 
         #restructure the imports
@@ -292,6 +292,7 @@ class Slave(Bot):
                 slavename=self.name,
                 slaveport=self.master.slave_port,
                 slavepasswd=self.passwd)
+
 
 class Config(models.Model):
     """
