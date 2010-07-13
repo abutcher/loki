@@ -9,7 +9,7 @@
 %{!?app_url: %define app_url %(%{__python} setup.py --url)}
 
 
-Name:           Django-app-loki
+Name:           Django-loki
 Version:        %{app_version}
 Release:        1%{?dist}
 Summary:        %{app_summary}

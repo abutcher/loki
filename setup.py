@@ -173,7 +173,7 @@ def get_sources(map_list):
 
 
 setup(
-    name="Django-app-loki",
+    name="Django-loki",
     version=__version__,
     description="A buildbot management application",
     long_description="A buildbot management application",
