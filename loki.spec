@@ -49,8 +49,6 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %doc AUTHORS COPYING LICENSE
-# For noarch packages: sitelib
-%{python_sitelib}/*
 %dir %{_datadir}/django/apps/loki/
 %{_datadir}/django/apps/loki/*
 #%ghost %{python_sitelib}/*egg-info
