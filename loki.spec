@@ -47,5 +47,8 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Jul 14 2010 Dan Radez <dradez@redhat.com> - 0.7.2-1
+- updates and cleanup for packaging in fedora, distributed node support and bug fixes
+
 * Tue Nov 24 2009 Dan Radez <dradez@redhat.com> - 0.6.0-1
 - Initial spec for loki rewrite
