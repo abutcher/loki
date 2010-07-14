@@ -18,7 +18,8 @@ from django.contrib.auth.decorators import user_passes_test
 from django.template import RequestContext
 
 from loki.models import Host
-from loki.models import Master, Slave, Config, ConfigParam
+from loki.models import Master, Slave, Builder
+from loki.models import Config, ConfigParam
 from loki.models import Status, StatusParam
 from loki.models import Step, StepParam
 from loki.models import Scheduler, SchedulerParam
@@ -30,7 +31,7 @@ from loki.model_helpers import introspect_module
 from loki.forms import ConfigParamFormSet
 
 
-def home(request, master=None, slave=None):
+def home(request, master=None, builder=None):
     """
     TODO: document me.
     """
@@ -40,45 +41,46 @@ def home(request, master=None, slave=None):
     context['status'] = Config.objects.filter(content_type=status_content_type)
     context['scheduler'] = Config.objects.filter(
         content_type=scheduler_content_type)
-    action = None
     render_template = 'home'
-    if request.method == 'GET' and 'action' in request.GET \
-            and request.user.is_superuser:
-        if request.GET['action'] in ['start', 'stop', 'reconfig']:
-            action = request.GET['action']
+    if builder:
+        render_template = 'builder'
+        builder = Builder.objects.get(name=builder)
+        context['builder'] = builder
+
+    elif master:
+        render_template = 'master'
+        master = Master.objects.get(name=master)
+        context['master'] = master
+    else:
+        context['hosts'] = Host.objects.exclude(id=1)
+    return render_to_response('loki/%s.html' % render_template, context,
+                              context_instance=RequestContext(request))
+
+@user_passes_test(lambda u: u.is_superuser)
+def action(request, action, master, slave=None):
     if slave:
         if slave == 'all':
             slaves = Slave.objects.all()
         else:
-            render_template = 'slave'
-            slaves = [Slave.objects.get(name=slave)]
-            context['slave'] = slaves[0]
-        if action:
-            for slave in slaves:
-                slave.bot_run(action)
-            time.sleep(1)
-            if len(slaves) == 1:
-                return HttpResponseRedirect(reverse('loki.views.home',
-                                        args=[slave.master.name, slave.name]))
-
+            slaves = Slave.objects.filter(name=slave)
+            masters = [Master.objects.get(name=master)]
+        for slave in slaves:
+            slave.bot_run(action)
+        time.sleep(1)
     elif master:
         if master == 'all':
             masters = Master.objects.all()
         else:
-            render_template = 'master'
             masters = [Master.objects.get(name=master)]
-            context['master'] = masters[0]
-        if action:
-            for master in masters:
-                master.bot_run(action)
-            time.sleep(1)
-            if len(masters) == 1:
-                return HttpResponseRedirect(reverse('loki.views.home',
-                                            args=[master.name]))
+        for master in masters:
+            master.bot_run(action)
+        time.sleep(1)
 
-    context['hosts'] = Host.objects.exclude(id=1)
-    return render_to_response('loki/%s.html' % render_template, context,
-                              context_instance=RequestContext(request))
+    if len(masters) == 1:
+        return HttpResponseRedirect(reverse('loki.views.home',
+                                    args=[master]))
+    else:
+        return home(request)
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -87,8 +89,8 @@ def config_add(request, type, bot_id, config_id):
     config_num = 0
     if type == 'step':
         config_num = 1
-        slave = Slave.objects.get(pk=bot_id)
-        step_with_max_num = Step.objects.filter(slave=slave).order_by('-num')
+        builder = Builder.objects.get(pk=bot_id)
+        step_with_max_num = Step.objects.filter(builder=builder).order_by('-num')
         if step_with_max_num:
             config_num = step_with_max_num[0].num + 1
     context = {'type': type,
@@ -118,7 +120,7 @@ def config_load(request, type, config_id):
 def config_step_save(request, bot_id):
     result = ''
     if request.method == 'POST':
-        slave = Slave.objects.get(id=bot_id)
+        builder = Builder.objects.get(id=bot_id)
         data = request.POST.copy()
         # get a step or create a newone
         if 'configid' in data and data['configid']:
@@ -127,7 +129,7 @@ def config_step_save(request, bot_id):
             del data['configid']
         else:
             config = Config.objects.get(id=data['config_type_id'])
-            step = Step(slave=slave, type=config, num=data['config_num'])
+            step = Step(builder=builder, type=config, num=data['config_num'])
             step.save()
             del data['config_type_id']
         del data['config_num']

@@ -68,6 +68,7 @@ class Host(models.Model):
 
 class Bot(models.Model):
 
+    name = models.SlugField(max_length=25, unique=True)
     alive = property(lambda self: (self.host.id > 1 and self.pid()) or \
                 (self.pid() and \
                  os.path.exists(os.path.join('/proc', str(self.pid())))))
@@ -83,7 +84,8 @@ class Bot(models.Model):
             'start': self.bot_start,
             'stop': self.bot_stop,
             'restart': self.bot_restart,
-            'hup': self.bot_hup,
+            'hup': self.bot_reconfig,
+            'reconfig': self.bot_reconfig,
             'create': self.bot_create,
         }
         actions[action]()
@@ -98,8 +100,8 @@ class Bot(models.Model):
     def bot_restart(self):
         self._run('restart')
 
-    def bot_hup(self):
-        self._run('hup')
+    def bot_reconfig(self):
+        self._run('reconfig')
 
     def bot_cfg(self):
         self._run('cfg')
@@ -126,12 +128,15 @@ class Bot(models.Model):
                 cfg = open(cfg_file, 'w')
                 cfg.write(content)
                 cfg.close()
+                action = ''
             elif action == 'create':
                 action = self.buildbot_create % self.path
+                if not os.path.exists(self.base_path):
+                    os.makedirs(self.base_path)
             else:
                 action = '%s %s' % (action, self.path)
-            print action.split(' ')
-            build_bot_run(action.split(' '))
+            if action:
+                build_bot_run(action.split(' '))
         else:
             # remote bot
             import paramiko
@@ -195,12 +200,14 @@ class Bot(models.Model):
 
 class Master(Bot):
     host = models.ForeignKey(Host, related_name='masters')
-    name = models.SlugField(max_length=25)
     slave_port = models.IntegerField(max_length=5)
     web_port = models.IntegerField(max_length=5)
 
+    base_path = property(lambda self: os.path.join(self.host.base_dir, \
+                                     BUILDBOT_MASTERS))
     path = property(lambda self: os.path.join(self.host.base_dir, \
                                      BUILDBOT_MASTERS, self.name))
+
     buildbot_create = 'create-master %s'
     cfg_file = 'master.cfg'
 
@@ -221,19 +228,22 @@ class Master(Bot):
             #generate the BuildSlave objects
             buildslaves += "\n    BuildSlave('%s', '%s')," % \
                 (slave.name, slave.passwd)
+
+        for builder in self.builders.all():
             #create buildfactory
-            b = '%s_%s' % (self.name, slave.name)
+            b = '%s_%s' % (self.name, builder.name)
             b = b.replace('-', '__dash__')
             factories += '%s = factory.BuildFactory()\n' % b
-            for step in slave.steps.all():
+            for step in builder.steps.all():
                 if step.type not in modules:
                     modules.append(step.type)
                 factories += "%s.addStep(%s)\n" % (b,
                                       _generate_class(step))
             #create builder from factory
-            factories += "b%s = {'name': '%s',\n" % (ct, slave.name)
-            factories += "      'slavename': '%s',\n" % slave.name
-            factories += "      'builddir': '%s',\n" % slave.name
+            slave_list = map(lambda s: str(s.name), builder.slaves.all())
+            factories += "b%s = {'name': '%s',\n" % (ct, builder.name)
+            factories += "      'slaves': %s,\n" % slave_list
+            factories += "      'builddir': '%s',\n" % builder.name
             factories += "      'factory': %s, }\n\n" % b
             # remember the builders
             builders.append('b%s' % ct)
@@ -273,9 +283,10 @@ class Master(Bot):
 class Slave(Bot):
     host = models.ForeignKey(Host, related_name='slaves')
     master = models.ForeignKey(Master, related_name='slaves')
-    name = models.SlugField(max_length=25)
     passwd = models.SlugField(max_length=25)
 
+    base_path = property(lambda self: os.path.join(self.host.base_dir, \
+                                     BUILDBOT_SLAVES))
     path = property(lambda self: os.path.join(self.host.base_dir, \
                                      BUILDBOT_SLAVES, self.name))
     buildbot_create = property(lambda self: 'create-slave %%s %s:%s %s %s' % \
@@ -292,6 +303,15 @@ class Slave(Bot):
                 slavename=self.name,
                 slaveport=self.master.slave_port,
                 slavepasswd=self.passwd)
+
+
+class Builder(models.Model):
+    name = models.SlugField(max_length=25, unique=True)
+    master = models.ForeignKey(Master, related_name='builders')
+    slaves = models.ManyToManyField(Slave, related_name='builders') 
+
+    def __unicode__(self):
+        return self.name
 
 
 class Config(models.Model):
@@ -339,7 +359,7 @@ class StatusParam(models.Model):
 
 
 class Step(models.Model):
-    slave = models.ForeignKey(Slave, related_name='steps')
+    builder = models.ForeignKey(Builder, related_name='steps')
     type = models.ForeignKey(Config, related_name='step_type',
                              limit_choices_to={
                                  'content_type': step_content_type})
@@ -386,6 +406,7 @@ post_save.connect(post_save_bot, sender=Master)
 post_delete.connect(post_delete_bot, sender=Master)
 post_save.connect(post_save_bot, sender=Slave)
 post_delete.connect(post_delete_bot, sender=Slave)
+post_save.connect(post_save_config, sender=Builder)
 post_save.connect(post_save_config, sender=Step)
 post_save.connect(post_save_config, sender=Status)
 post_save.connect(post_save_config, sender=Scheduler)

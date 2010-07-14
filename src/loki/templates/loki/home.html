@@ -6,18 +6,18 @@
         {% ifequal user.is_superuser 1 %}
         <div style="float:left;padding-right:50px;">
         <ul>All Masters
-        <li><a href="{% url loki.views.home 'all' %}?action=start">Start</a></li>
-        <li><a href="{% url loki.views.home 'all' %}?action=stop">Stop</a></li>
-        <li><a href="{% url loki.views.home 'all' %}?action=restart">Restart</a></li>
-        <li><a href="{% url loki.views.home 'all' %}?action=hup">Hup</a></li>
+        <li><a href="{% url loki.views.action 'start','all' %}">Start</a></li>
+        <li><a href="{% url loki.views.action 'stop','all' %}">Stop</a></li>
+        <li><a href="{% url loki.views.action 'restart','all' %}">Restart</a></li>
+        <li><a href="{% url loki.views.action 'hup','all' %}">Hup</a></li>
         </ul>
         </div>
         <div style="float:left;">
         <ul>All Slaves
-        <li><a href="{% url loki.views.home 'all','all' %}?action=start">Start</a></li>
-        <li><a href="{% url loki.views.home 'all','all' %}?action=stop">Stop</a></li>
-        <li><a href="{% url loki.views.home 'all','all' %}?action=restart">Restart</a></li>
-        <li><a href="{% url loki.views.home 'all','all' %}?action=hup">Hup</a></li>
+        <li><a href="{% url loki.views.action 'start','all','all' %}">Start</a></li>
+        <li><a href="{% url loki.views.action 'stop','all','all' %}">Stop</a></li>
+        <li><a href="{% url loki.views.action 'restart','all','all' %}">Restart</a></li>
+        <li><a href="{% url loki.views.action 'hup','all','all' %}">Hup</a></li>
         </ul>
         </div>
         <ul>Hosts

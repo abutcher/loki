@@ -31,6 +31,8 @@ urlpatterns = patterns('loki.views',
     (r'^ajax/config/(step|status|scheduler)/add/([0-9]+)/([0-9]+)/',
         'config_add'),
     (r'^admin/', include(admin.site.urls)),
+    (r'^(start|stop|restart|reconfig|hup)/([^/]+)/$', 'action'),
+    (r'^(start|stop|restart|reconfig|hup)/([^/]+)/([^/]+)/$', 'action'),
     (r'^([^/]+)/$', 'home'),
     (r'^([^/]+)/([^/]+)/$', 'home'),
 )

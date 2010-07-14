@@ -2,22 +2,20 @@
     {% load loki_tags %}
     {% block script %}
         $("form#addstep").submit(function() {
-            $("div#steps div#newstep").load('/ajax/config/step/add/{{ slave.id }}/' + this.step.value + '/');
+            $("div#steps div#newstep").load('/ajax/config/step/add/{{ builder.id }}/' + this.step.value + '/');
             return false;
         });
     {% endblock %}
     {% block drawer_title %}
-        {% if slave.alive %}Running{% if user.is_superuser %} <a href="{% url loki.views.home slave.master,slave %}?action=hup">hup</a>
-            :: pid {{ slave.pid }} :: <a href="{% url loki.views.home slave.master,slave %}?action=stop">Stop</a>{% endif %}
-        {% else %}Stopped{% if user.is_superuser %} :: <a href="{% url loki.views.home slave.master,slave %}?action=start">Start</a>{% endif %}{% endif %}
+    drawer title
     {% endblock %}
 
     {% block content %}
-        {% block title %}Slave: {{ slave }}{% endblock %}<br>
-        host: {{ slave.host }}<br>
+        {% block title %}Builder: {{ builder }}{% endblock %}<br>
+        slaves: {{ builder.slaves.all }}<br>
         steps:<br>
         <div id="steps" style="float: left;">
-        {% for step in slave.steps.all %}
+        {% for step in builder.steps.all %}
         {% step %}
         {% endfor %}
         <div id="newstep" style="float: left; clear: left;"/>

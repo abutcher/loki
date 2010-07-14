@@ -20,8 +20,6 @@ from buildbot.interfaces import BuildbotNotRunningError
 from twisted.python import usage
 
 from loki.thread import BuildBotStart
-from loki.settings import BUILDBOT_MASTERS
-from loki.settings import BUILDBOT_SLAVES
 
 loki_pwd = os.path.abspath('.')
 
@@ -115,6 +113,7 @@ def introspect_module(path='buildbot.steps'):
 
 
 def build_bot_run(options):
+    print options
     if '--quiet' not in options:
         options.insert(1, '--quiet')
     config = Options()
@@ -131,14 +130,10 @@ def build_bot_run(options):
     so = config.subOptions
 
     if command == "create-master":
-        if not os.path.exists(BUILDBOT_MASTERS):
-            os.makedirs(BUILDBOT_MASTERS)
         createMaster(so)
     elif command == "upgrade-master":
         upgradeMaster(so)
     elif command == "create-slave":
-        if not os.path.exists(BUILDBOT_SLAVES):
-            os.makedirs(BUILDBOT_SLAVES)
         createSlave(so)
 
     ## following adapted from

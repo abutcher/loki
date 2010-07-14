@@ -2,9 +2,8 @@
             <h3><a href="{% url loki.views.home master %}">{{ master }}</a>
                 <span id="{% if master.alive %}running{% else %}stopped{% endif %}">&bull;</span></h3>
             <ul>
-                {% for slave in master.slaves.all %}
-                    <li><a href="{% url loki.views.home master,slave %}">{{ slave }}</a>
-                        <span id="{% if slave.alive %}running{% else %}stopped{% endif %}">&bull;</span></li>
+                {% for builder in master.builders.all %}
+                    <li><a href="{% url loki.views.home master,builder %}">{{ builder }}</a></li>
                 {% endfor %}
             </ul><p>
         {% endfor %}

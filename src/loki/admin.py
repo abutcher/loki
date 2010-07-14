@@ -42,6 +42,11 @@ class SlaveAdmin(admin.ModelAdmin):
     list_display_links = ('name', )
 
 
+class BuilderAdmin(admin.ModelAdmin):
+    list_display = ('master', 'name')
+    list_display_links = ('name', )
+
+
 class ConfigAdmin(admin.ModelAdmin):
     inlines = [ConfigParamInline, ]
     list_display = ('name', 'content_type')

@@ -35,10 +35,10 @@ def post_save_bot(sender, instance, created, **kwargs):
     if hasattr(instance, 'master'):
         instance.master.bot_cfg()
         if instance.master.alive:
-            instance.master.bot_hup()
+            instance.master.bot_reconfig()
 
     if instance.alive:
-        instance.bot_hup()
+        instance.bot_reconfig()
 
 
 def post_delete_bot(sender, instance, **kwargs):
@@ -50,8 +50,6 @@ def post_delete_bot(sender, instance, **kwargs):
        - instance: instance of the object being saved
        - kwargs: any keyword arguments
     """
-    # stop bot
-    bot_path = os.path.join(BUILDBOT_MASTERS, instance.name)
     if instance.alive:
         instance.bot_stop()
 
@@ -73,9 +71,9 @@ def post_save_config(sender, instance, **kwargs):
     if hasattr(instance, 'master'):
         master = instance.master
     else:
-        master = instance.slave.master
+        master = instance.builder.master
 
     # regen and hup
     master.bot_cfg()
     if master.alive:
-        master.bot_hup()
+        master.bot_reconfig()
