@@ -1,32 +1,24 @@
 # sitelib for noarch packages
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
-# Use the info in setup.py
-%{!?app_name: %define app_name %(%{__python} setup.py --name)}
-%{!?app_version: %define app_version %(%{__python} setup.py --version)}
-%{!?app_summary: %define app_summary %(%{__python} setup.py --description)}
-%{!?app_description: %define app_description %(%{__python} setup.py --long-description)}
-%{!?app_license: %define app_license %(%{__python} setup.py --license)}
-%{!?app_url: %define app_url %(%{__python} setup.py --url)}
-
 
 Name:           Django-loki
-Version:        %{app_version}
+Version:        0.7.2
 Release:        1%{?dist}
-Summary:        %{app_summary}
+Summary:        A Django web interface to manage Buildbots
 
 Group:          Applications/Internet
-License:        %{app_license}
-URL:            %{app_url}
+License:        GPL3
+URL:            https://fedroahosted.org/loki
 Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:      noarch
 BuildRequires:  python-devel
-Requires:       Django-reusable-base, PyYAML, python-docutils, buildbot
+Requires:       Django, PyYAML, python-docutils, buildbot
 
 
 %description
-%{app_description}
+A Django web interface to manage Buildbots
 
 
 %prep
