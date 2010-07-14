@@ -3,13 +3,13 @@
 
 Name:           Django-loki
 Version:        0.7.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A Django web interface to manage Buildbots
 
 Group:          Applications/Internet
 License:        GPL3
-URL:            https://fedroahosted.org/loki
-Source0:        %{name}-%{version}.tar.gz
+URL:            https://fedorahosted.org/loki
+Source0:        https://fedorahosted.org/released/loki/%{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:      noarch
@@ -43,10 +43,13 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING LICENSE
 %dir %{_datadir}/django/apps/loki/
 %{_datadir}/django/apps/loki/*
-#%ghost %{python_sitelib}/*egg-info
+%ghost %{python_sitelib}/*egg-info
 
 
 %changelog
+* Wed Jul 14 2010 Dan Radez <dradez@redhat.com> - 0.7.2-2
+- added ghost for egg info
+
 * Wed Jul 14 2010 Dan Radez <dradez@redhat.com> - 0.7.2-1
 - updates and cleanup for packaging in fedora, distributed node support and bug fixes
 
