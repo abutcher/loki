@@ -3,7 +3,7 @@
 
 Name:           Django-loki
 Version:        0.8.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A Django web interface to manage Buildbots
 
 Group:          Applications/Internet
@@ -46,6 +46,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING LICENSE
 %dir %{_datadir}/django/apps/loki/
 %{_datadir}/django/apps/loki/*
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 
 %changelog
 * Wed Jul 14 2010 Dan Radez <dradez@redhat.com> - 0.7.2-2
