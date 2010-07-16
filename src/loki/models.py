@@ -132,7 +132,7 @@ class Bot(models.Model):
             elif action == 'create':
                 action = self.buildbot_create % self.path
                 if not os.path.exists(self.base_path):
-                    os.makedirs(self.base_path)
+                    os.mkdir(self.base_path)
             else:
                 action = '%s %s' % (action, self.path)
             if action:
@@ -242,7 +242,7 @@ class Master(Bot):
             #create builder from factory
             slave_list = map(lambda s: str(s.name), builder.slaves.all())
             factories += "b%s = {'name': '%s',\n" % (ct, builder.name)
-            factories += "      'slaves': %s,\n" % slave_list
+            factories += "      'slavenames': %s,\n" % slave_list
             factories += "      'builddir': '%s',\n" % builder.name
             factories += "      'factory': %s, }\n\n" % b
             # remember the builders
