@@ -34,8 +34,6 @@ rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --skip-build --root $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/%{_usr}/share/django/apps/loki
 
-%post
-rm -f %{python_sitelib}/*egg-info
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -46,8 +44,12 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING LICENSE
 %dir %{_datadir}/django/apps/loki/
 %{_datadir}/django/apps/loki/*
+%{python_sitelib}/*egg-info
 
 %changelog
+* Fri Jul 16 2010 Dan Radez <dradez@redhat.com> - 0.8.0-3
+- handling the egg info according to fedora packageing guidlines and releasing the 0.8.0 version
+
 * Wed Jul 14 2010 Dan Radez <dradez@redhat.com> - 0.7.2-2
 - added ghost for egg info
 
