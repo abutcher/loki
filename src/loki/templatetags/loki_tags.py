@@ -17,6 +17,8 @@ import time
 
 from django import template
 
+from loki.forms import StepParamFormSet
+
 register = template.Library()
 
 
@@ -24,7 +26,8 @@ register = template.Library()
 # The first argument *must* be called "context" here.
 def step(context):
     return {'step': context['step'],
-            'user': context['user'], }
+            'user': context['user'],
+            'form': StepParamFormSet(queryset=context['step'].params.all()), }
 
 
 @register.inclusion_tag('loki/ajax/status.html', takes_context=True)

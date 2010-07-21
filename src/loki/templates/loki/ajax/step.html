@@ -1,3 +1,5 @@
+{% load loki_tags %}
+
 <div id="step{{ step.id }}" class="drawer" style="float:left;clear:left;">
 <div id="step_display{{ step.id }}">
     <div style="float: left;" class="bold">{{ step.num }}: {{ step.type }}</div>
@@ -8,15 +10,23 @@
     </div>
     {% endif %}<br>
     {% for p in step.params.all %}
-        {{ p.type.name }}: {{ p.val }}<br>
+        {% if not p.default %}{{ p.type.name }}: {{ p.val }}<br>{% endif %}
     {% endfor %}
 </div>
 {% if user.is_superuser %}
 <div id="step_edit{{ step.id }}" style="display:none;">
-    <form id="step{{ step.id }}" name="savestep" action="javascript:saveconfig('step{{ step.id }}');" method="post"> 
-    Edit Form Not Implimented<br>
-    <button onClick="javascript:toggleconfig('step', 'display', {{ step.id }});">Cancel</button><br>
-    <input type="hidden" name="step_id" value="{{ step.id }}">
+    <form id="savestep{{ step.id }}" name="saveconfig" action="javascript:saveconfig('step' , '{{ step.builder.id }}', 'savestep{{ step.id }}');" method="post">
+    Edit Form In Development!<br>
+        <b>
+        <input name="step_num" value="{{ step.num }}" maxlength="3" size="3">
+        {{ step.type.name }} :: {{ step.type.module }}</b><br>
+        {% for p in step.params.all %}
+        {{ p.type.name }}{% if p.type.required %}<span style="color:red;">*</span>{% endif %}:
+            <input name="{{ p.type.id }}" value="{% if p.use_default %}{{ p.type.default }}{% else %}{{ p.val }}{% endif %}" %}><br>
+        {% endfor %}
+        <input type="hidden" name="stepid" value="{{ step.id }}">
+        <input type="submit" value="Save">
+        <button onClick="javascript:toggleconfig('step', 'display', {{ step.id }});return false;">Cancel</button><br>
     </form>
 </div>
 <div id="step_delete{{ step.id }}" style="display:none;">

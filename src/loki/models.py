@@ -308,7 +308,7 @@ class Slave(Bot):
 class Builder(models.Model):
     name = models.SlugField(max_length=25, unique=True)
     master = models.ForeignKey(Master, related_name='builders')
-    slaves = models.ManyToManyField(Slave, related_name='builders') 
+    slaves = models.ManyToManyField(Slave, related_name='builders')
 
     def __unicode__(self):
         return self.name
@@ -352,7 +352,8 @@ class Status(models.Model):
 class StatusParam(models.Model):
     status = models.ForeignKey(Status, related_name='params')
     type = models.ForeignKey(ConfigParam)
-    val = models.CharField(max_length=200)
+    val = models.CharField(max_length=200, blank=True, null=True)
+    default = models.BooleanField(default=False)
 
     def __unicode__(self):
         return '%s :: %s' % (self.status, self.val)
@@ -369,13 +370,14 @@ class Step(models.Model):
         ordering = ('num', )
 
     def __unicode__(self):
-        return '%s :: %s' % (self.slave, self.type)
+        return '%s :: %s' % (self.builder, self.type)
 
 
 class StepParam(models.Model):
     step = models.ForeignKey(Step, related_name='params')
     type = models.ForeignKey(ConfigParam)
-    val = models.CharField(max_length=200)
+    val = models.CharField(max_length=200, blank=True, null=True)
+    default = models.BooleanField(default=False)
 
     def __unicode__(self):
         return '%s :: %s' % (self.step, self.val)
@@ -395,6 +397,7 @@ class SchedulerParam(models.Model):
     scheduler = models.ForeignKey(Scheduler, related_name='params')
     type = models.ForeignKey(ConfigParam)
     val = models.CharField(max_length=200)
+    default = models.BooleanField(default=False)
 
     def __unicode__(self):
         return '%s :: %s' % (self.scheduler, self.val)
