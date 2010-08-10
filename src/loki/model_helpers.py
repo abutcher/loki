@@ -10,6 +10,10 @@
 
 import os
 import inspect
+import pickle
+
+from types import StringType
+from types import UnicodeType
 
 from buildbot.scripts.runner import Options
 from buildbot.scripts.runner import createMaster
@@ -39,10 +43,14 @@ def _generate_class(cls):
     gcls = cls.type.module.split('.')[-1]
     gprm = []
     for param in cls.params.all():
-        if param.val[0] in ['[', '{']:
-            gprm.append("%s=%s" % (param.type.name, param.val))
+        if type(param.loads_val()) == StringType:
+            pair_form = "%s='%s'"
+        elif type(param.loads_val()) == UnicodeType:
+            pair_form = "%s=u'%s'"
         else:
-            gprm.append("%s='%s'" % (param.type.name, param.val))
+            pair_form = "%s=%s"
+        gprm.append(pair_form % (param.type.name,
+                        param.loads_val()))
     return "%s(%s)" % (gcls, ', '.join(gprm))
 
 
@@ -206,3 +214,60 @@ def build_bot_run(options):
         doCheckConfig(so)
 
     os.chdir(loki_pwd)
+
+def generate_master_cfg(master):
+    """
+    TODO: Document me
+    """
+    buildslaves = ''
+    builders = []
+    factories = ''
+    modules = []
+    statuses = ''
+    schedulers = ''
+    ct = 1
+    for slave in master.slaves:
+        #remebers the slaves
+        buildslaves += "\n    BuildSlave('%s', '%s')," % \
+            (slave.name, slave.passwd)
+        #create buildfactory
+        b = '%s_%s' % (master.name, slave.name)
+        factories += '%s = factory.BuildFactory()\n' % b
+        for step in slave.steps:
+            if step.module not in modules:
+                modules.append(step.module)
+            factories += "%s.addStep(%s)\n" % (b,
+                                  _generate_class(step))
+        #create builder from factory
+        factories += "b%s = {'name': '%s',\n" % (ct, slave.name)
+        factories += "      'slavename': '%s',\n" % slave.name
+        factories += "      'builddir': '%s',\n" % slave.name
+        factories += "      'factory': %s, }\n\n" % b
+        # remember the builders
+        builders.append('b%s' % ct)
+        ct += 1
+
+    #generate statuses
+    for status in master.statuses:
+        statuses += "c['status'].append(%s)" % _generate_class(status)
+        modules.append(status.module)
+
+    #restructure the imports
+    imports = ''
+    for x in modules:
+        imports += 'from %s import %s\n' % (
+                    '.'.join(x.split('.')[:-1]),
+                    x.split('.')[-1])
+
+    #generate the template
+    t = _template('master.cfg.tpl',
+               botname=master.name,
+               webhost=master.server,
+               webport=master.web_port,
+               slaveport=master.slave_port,
+               buildslaves=buildslaves,
+               imports=imports,
+               factories=factories,
+               builders=','.join(builders),
+               statuses=statuses,
+               schedulers=schedulers)

@@ -10,7 +10,7 @@
     </div>
     {% endif %}<br>
     {% for p in step.params.all %}
-        {% if not p.default %}{{ p.type.name }}: {{ p.val }}<br>{% endif %}
+        {% if not p.default %}{{ p.type.name }}: {{ p.loads_val }}<br>{% endif %}
     {% endfor %}
 </div>
 {% if user.is_superuser %}
@@ -22,7 +22,7 @@
         {{ step.type.name }} :: {{ step.type.module }}</b><br>
         {% for p in step.params.all %}
         {{ p.type.name }}{% if p.type.required %}<span style="color:red;">*</span>{% endif %}:
-            <input name="{{ p.type.id }}" value="{% if p.use_default %}{{ p.type.default }}{% else %}{{ p.val }}{% endif %}" %}><br>
+            <input name="{{ p.type.id }}" value="{% if p.use_default %}{{ p.type.loads_default }}{% else %}{{ p.loads_val }}{% endif %}" %}><br>
         {% endfor %}
         <input type="hidden" name="stepid" value="{{ step.id }}">
         <input type="submit" value="Save">

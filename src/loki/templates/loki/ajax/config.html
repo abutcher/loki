@@ -5,7 +5,7 @@
 {{ config.name }} :: {{ config.module }}</b><br>
 {% for p in config.params.all %}
 {{ p.name }}{% if p.required %}<span style="color:red;">*</span>{% endif %}: 
-    <input name="{{ p.id }}"{% if p.default %}value="{{ p.default }}"{% endif %}><br>
+    <input name="{{ p.id }}" value="{{ p.loads_default }}"><br>
 {% endfor %}
 <input type="hidden" name="config_type_id" value="{{ config.id }}">
 <input type="submit" value="Add">

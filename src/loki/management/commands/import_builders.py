@@ -8,10 +8,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+import pickle
+
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
 from loki.models import step_content_type
-from loki.models import Builder, Config, Step
+from loki.models import Master, Builder, Config
+from loki.models import Step, StepParam
+from loki.helpers import config_importer
 
 class Command(BaseCommand):
     args = 'path/to/master.cfg'
@@ -34,9 +38,9 @@ class Command(BaseCommand):
         )
 
     def yes_no(self, msg):
-        cont = raw_input("Import these steps? (y/N) ")
+        cont = raw_input("%s (y/N) " % msg)
         while cont.upper() not in ['Y', 'N', '']:
-            cont = raw_input("Import these steps? Please type y or n ")
+            cont = raw_input("%s Please type y or n " % msg)
         return cont.upper() == 'Y'
 
     def handle(self, *args, **options):
@@ -60,8 +64,7 @@ class Command(BaseCommand):
             builder = raw_input("\nWhich builder would you like to import? ")
 
         # verify steps
-        #import pdb
-        #pdb.set_trace()
+        print '\nVerifying Steps for builder %s:' % builder
         x = 1
         for ct, i in enumerate(builders[builder]['factory'].steps):
             print '%s: %s' % (ct+1, str(i[0]))
@@ -81,20 +84,40 @@ class Command(BaseCommand):
                 print ' - %s: registered' % str(i[0])
             except:
                 print '\n%s is not registered with loki\n' % str(i[0])
-                #TODO don't bail here, offer to register the step type first
-                exit(1)
+                if options['auto'] or self.yes_no("Import %s definition?" % str(i[0])):
+                    config_importer(str(i[0]), 'steps')
+                    if str(i[0]) not in step_types:
+                        step_types[str(i[0])] = Config.objects.get(module=str(i[0]),
+                                                        content_type=step_content_type)
+                    print ' - %s: imported' % str(i[0])
+                else:
+                    print '\nCannot continue without registering \
+%s definition with loki\n' % str(i[0])
+                    exit(1)
 
         # do the builder import
         print '\nImporting builder %s' % builder
         master = Master.objects.get(name=options['master']) 
-        builder = Builder(name=builder, master=master, slaves=master.slaves)
+        builder = Builder(name=builder, master=master)
         builder.save()
-        steps = []
-        for i, s in enumerate(builders[builder]['factory'].steps):
-            params = []
-            steps.append(Step(builder=builder, type=step_types[s[0]]), num=i)
-            steps[-1].save()
-            for p in step_types[s[0]].params:
-                params.append(StepParam(type=p, val=s[1][p.name],
-                              default=(s[1][p.name]==p.default)))
-                params[-1].save() 
+        try:
+            builder.slaves = master.slaves.all()
+            builder.save()
+            for i, s in enumerate(builders[builder.name]['factory'].steps):
+                step = Step(builder=builder, type=step_types[str(s[0])], num=i+1)
+                step.save()
+                for p in step_types[str(s[0])].params.all():
+                    if p.name in s[1]:
+                        param = StepParam(step=step, type=p, val=pickle.dumps(s[1][p.name]),
+                              default=(s[1][p.name]==p.loads_default()))
+                    else:
+                        print '%s %s not defined in config being imported, using default: %s' % \
+                              (s[0], p.name, p.loads_default())
+                        param = StepParam(step=step, type=p, val=p.default, default=True)
+                    param.save() 
+            print '\nImport Complete\n\n'
+        except Exception, e:
+            #something failed so let's not leave the builder half imported
+            builder.delete()
+            print '\nImport Failed!'
+            raise e

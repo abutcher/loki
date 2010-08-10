@@ -11,7 +11,7 @@
 import os
 
 from loki.settings import *
-from loki.helpers import generate_master_cfg
+from loki.model_helpers import generate_master_cfg
 from buildbot.scripts.runner import Options, createMaster
 
 

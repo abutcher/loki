@@ -9,6 +9,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import os
+import pickle
 
 from django.db import models
 from django.db.models.signals import post_save
@@ -332,6 +333,12 @@ class ConfigParam(models.Model):
     default = models.CharField(max_length=200, blank=True, null=True)
     required = models.BooleanField(default=False)
 
+    def loads_default(self):
+        try:
+            return pickle.loads(str(self.default))
+        except:
+            return self.default
+
     def __unicode__(self):
         req = ''
         if self.required:
@@ -379,8 +386,14 @@ class StepParam(models.Model):
     val = models.CharField(max_length=200, blank=True, null=True)
     default = models.BooleanField(default=False)
 
+    def loads_val(self):
+        try:
+            return pickle.loads(str(self.val))
+        except:
+            return self.val
+
     def __unicode__(self):
-        return '%s :: %s' % (self.step, self.val)
+        return '%s :: %s:%s' % (self.step, self.type.name, self.loads_val())
 
 
 class Scheduler(models.Model):

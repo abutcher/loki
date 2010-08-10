@@ -9,6 +9,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import time
+import pickle
 
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
@@ -28,6 +29,7 @@ from loki.models import step_content_type
 from loki.models import scheduler_content_type
 
 from loki.model_helpers import introspect_module
+from loki.helpers import config_importer
 from loki.forms import ConfigParamFormSet
 
 
@@ -145,12 +147,13 @@ def config_step_save(request, bot_id):
             s = step.params.filter(type=param_type)
             if s:
                 s = s[0]
-                s.val = v
-                s.default=(v == param_type.default)
+                s.val = pickle.dumps(v)
+                s.default=(v==param_type.loads_default())
                 s.save()
             else:
                 param = StepParam(step=step, type=param_type,
-                                  val=v, default=(v == param_type.default))
+                                  val=pickle.dumps(v),
+                                  default=(v==param_type.loads_default()))
                 params_2_add.append(param)
         if params_2_add:
             step.params = params_2_add
@@ -189,8 +192,8 @@ def config_status_save(request, bot_id):
         # add new params
         for p, v in data.items():
             param_type = ConfigParam.objects.get(id=p)
-            param = StatusParam(status=status, type=param_type, val=v,
-                                default=(v == param_type.default))
+            param = StatusParam(status=status, type=param_type, val=pickle.dumps(v),
+                                default=(v==param_type.loads_default()))
             params_2_add.append(param)
         status.params = params_2_add
         status.save()
@@ -231,7 +234,7 @@ def config_scheduler_save(request, bot_id):
             param_type = ConfigParam.objects.get(id=p)
             if v != param_type.default:
                 param = SchedulerParam(
-                    scheduler=scheduler, type=param_type, val=v)
+                    scheduler=scheduler, type=param_type, val=pickle.dumps(v))
                 params_2_add.append(param)
         scheduler.params = params_2_add
         scheduler.save()
@@ -259,29 +262,7 @@ def config_delete(request, type):
 def import_config(request, type):
     # do import if we're importing
     if request.method == 'POST' and 'import' in request.POST:
-        content_types = {
-            'status': status_content_type,
-            'steps': step_content_type,
-            'scheduler': scheduler_content_type,
-        }
-        module = request.POST['import']
-        path = '.'.join(module.split('.')[:-1])
-        name = request.POST['import'].split('.')[-1]
-        introspected = introspect_module(path=path)
-        imported_config = introspected[name]
-        new_config = Config.objects.create(name=name, module=module,
-                                         content_type=content_types[type])
-        new_config.save()
-        try:
-            for req in imported_config[1]:
-                ConfigParam.objects.create(type=new_config, name=req,
-                                           required=True).save()
-            for opt, default in imported_config[2].items():
-                ConfigParam.objects.create(type=new_config, name=opt,
-                                           default=str(default)).save()
-        except Exception, e:
-            new_config.delete()
-            raise e
+        config_importer(request.POST['import'], type)
 
         if 'path' in request.POST:
             path = request.POST['path']

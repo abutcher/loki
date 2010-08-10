@@ -8,59 +8,33 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-def generate_master_cfg(master):
-    """
-    TODO: Document me
-    """
-    buildslaves = ''
-    builders = []
-    factories = ''
-    modules = []
-    statuses = ''
-    schedulers = ''
-    ct = 1
-    for slave in master.slaves:
-        #remebers the slaves
-        buildslaves += "\n    BuildSlave('%s', '%s')," % \
-            (slave.name, slave.passwd)
-        #create buildfactory
-        b = '%s_%s' % (master.name, slave.name)
-        factories += '%s = factory.BuildFactory()\n' % b
-        for step in slave.steps:
-            if step.module not in modules:
-                modules.append(step.module)
-            factories += "%s.addStep(%s)\n" % (b,
-                                  _generate_class(step))
-        #create builder from factory
-        factories += "b%s = {'name': '%s',\n" % (ct, slave.name)
-        factories += "      'slavename': '%s',\n" % slave.name
-        factories += "      'builddir': '%s',\n" % slave.name
-        factories += "      'factory': %s, }\n\n" % b
-        # remember the builders
-        builders.append('b%s' % ct)
-        ct += 1
+import pickle
+from loki.models import status_content_type
+from loki.models import step_content_type
+from loki.models import scheduler_content_type
+from loki.models import Config, ConfigParam
+from loki.model_helpers import introspect_module
 
-    #generate statuses
-    for status in master.statuses:
-        statuses += "c['status'].append(%s)" % _generate_class(status)
-        modules.append(status.module)
-
-    #restructure the imports
-    imports = ''
-    for x in modules:
-        imports += 'from %s import %s\n' % (
-                    '.'.join(x.split('.')[:-1]),
-                    x.split('.')[-1])
-
-    #generate the template
-    t = _template('master.cfg.tpl',
-               botname=master.name,
-               webhost=master.server,
-               webport=master.web_port,
-               slaveport=master.slave_port,
-               buildslaves=buildslaves,
-               imports=imports,
-               factories=factories,
-               builders=','.join(builders),
-               statuses=statuses,
-               schedulers=schedulers)
+def config_importer(module, type):
+    content_types = {
+        'status': status_content_type,
+        'steps': step_content_type,
+        'scheduler': scheduler_content_type,
+    }
+    path = '.'.join(module.split('.')[:-1])
+    name = module.split('.')[-1]
+    introspected = introspect_module(path=path)
+    imported_config = introspected[name]
+    new_config = Config(name=name, module=module,
+                        content_type=content_types[type])
+    new_config.save()
+    try:
+        for req in imported_config[1]:
+            ConfigParam(type=new_config, name=req,
+                        required=True).save()
+        for opt, default in imported_config[2].items():
+            ConfigParam(type=new_config, name=opt,
+                        default=pickle.dumps(default)).save()
+    except Exception, e:
+        new_config.delete()
+        raise e

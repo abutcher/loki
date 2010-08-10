@@ -13,8 +13,8 @@ from django.contrib import admin
 from django.contrib.contenttypes import generic
 
 
-class ConfigParamInline(admin.TabularInline):
-    model = ConfigParam
+class StepInline(admin.TabularInline):
+    model = Step
 
 
 class StatusParamInline(admin.TabularInline):
@@ -27,6 +27,10 @@ class StepParamInline(admin.TabularInline):
 
 class SchedulerParamInline(admin.TabularInline):
     model = SchedulerParam
+
+
+class ConfigParamInline(admin.TabularInline):
+    model = ConfigParam
 
 
 class HostAdmin(admin.ModelAdmin):
@@ -45,6 +49,7 @@ class SlaveAdmin(admin.ModelAdmin):
 class BuilderAdmin(admin.ModelAdmin):
     list_display = ('master', 'name')
     list_display_links = ('name', )
+    inlines = [StepInline, ]
 
 
 class ConfigAdmin(admin.ModelAdmin):
