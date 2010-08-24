@@ -5,8 +5,8 @@
     <div style="float: left;" class="bold">{{ step.num }}: {{ step.type }}</div>
     {% if user.is_superuser %}
     <div style="float: left; margin-left: 10px; margin-top: 3px;">
-        <img class="img_link" src="/media/admin/img/admin/icon_changelink.gif" onClick="javascript:toggleconfig('step', 'edit', {{ step.id }});">
-        <img class="img_link" src="/media/admin/img/admin/icon_deletelink.gif" onClick="javascript:toggleconfig('step', 'delete', {{ step.id }});">
+        <img class="img_link" alt="edit" src="/admin/media/img/admin/icon_changelink.gif" onClick="javascript:toggleconfig('step', 'edit', {{ step.id }});">
+        <img class="img_link" alt="del" src="/admin/media/img/admin/icon_deletelink.gif" onClick="javascript:toggleconfig('step', 'delete', {{ step.id }});">
     </div>
     {% endif %}<br>
     {% for p in step.params.all %}
@@ -16,7 +16,6 @@
 {% if user.is_superuser %}
 <div id="step_edit{{ step.id }}" style="display:none;">
     <form id="savestep{{ step.id }}" name="saveconfig" action="javascript:saveconfig('step' , '{{ step.builder.id }}', 'savestep{{ step.id }}');" method="post">
-    Edit Form In Development!<br>
         <b>
         <input name="step_num" value="{{ step.num }}" maxlength="3" size="3">
         {{ step.type.name }} :: {{ step.type.module }}</b><br>

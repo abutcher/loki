@@ -362,6 +362,12 @@ class StatusParam(models.Model):
     val = models.CharField(max_length=200, blank=True, null=True)
     default = models.BooleanField(default=False)
 
+    def loads_val(self):
+        try:
+            return pickle.loads(str(self.val))
+        except:
+            return self.val
+
     def __unicode__(self):
         return '%s :: %s' % (self.status, self.val)
 
@@ -411,6 +417,12 @@ class SchedulerParam(models.Model):
     type = models.ForeignKey(ConfigParam)
     val = models.CharField(max_length=200)
     default = models.BooleanField(default=False)
+
+    def loads_val(self):
+        try:
+            return pickle.loads(str(self.val))
+        except:
+            return self.val
 
     def __unicode__(self):
         return '%s :: %s' % (self.scheduler, self.val)
