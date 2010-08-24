@@ -9,6 +9,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import pickle
+
 from loki.models import status_content_type
 from loki.models import step_content_type
 from loki.models import scheduler_content_type
@@ -50,8 +51,7 @@ def type_sniffer(value):
     if ',' in value:
         return map(sniffer, value.split(','))
     # all numbers? cast to an int
-    num_check = filter(lambda x: x in '0123456789', list(value))
-    if len(num_check) == len(value):
+    if value.isdigit():
         return int(value)
     # True or False? cast to bool
     if value.upper() == 'TRUE':
