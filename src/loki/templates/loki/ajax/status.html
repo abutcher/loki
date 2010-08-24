@@ -14,9 +14,9 @@
 {% if user.is_superuser %}
 <div id="status_edit{{ status.id }}" style="display:none;">
     <form id="status{{ status.id }}" name="savestatus" action="javascript:savestatus('status{{ status.id }}');" method="post"> 
-    Edit Form Not Implimented<br>
+    <input name="status_num" value="{{ step.num }}" maxlength="3" size="3">
     <button onClick="javascript:toggleconfig('status', 'display', {{ status.id }});">Cancel</button><br>
-    <input type="hidden" name="status_id" value="{{ status.id }}">
+    <input type="hidden" name="statusid" value="{{ status.id }}">
     </form>
 </div>
 <div id="status_delete{{ status.id }}" style="display:none;">

@@ -427,6 +427,12 @@ class SchedulerParam(models.Model):
     def __unicode__(self):
         return '%s :: %s' % (self.scheduler, self.val)
 
+cfg_objs = {
+    'step': (Step, StepParam),
+    'status': (Status, StatusParam),
+    'scheduler': (Scheduler, SchedulerParam),
+}
+
 bind_administration('loki.models', 'loki.admin')
 #post_save.connect(post_save_bot, sender=Bot)
 #post_delete.connect(post_delete_bot, sender=Bot)

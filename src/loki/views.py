@@ -27,6 +27,7 @@ from loki.models import Scheduler, SchedulerParam
 from loki.models import status_content_type
 from loki.models import step_content_type
 from loki.models import scheduler_content_type
+from loki.models import cfg_objs
 
 from loki.model_helpers import introspect_module
 from loki.helpers import config_importer
@@ -121,32 +122,34 @@ def config_load(request, type, config_id):
                               context_instance=RequestContext(request))
 
 
-@user_passes_test(lambda u: u.is_superuser)
-def config_step_save(request, bot_id):
+def _config_save(request, bot_id, type):
+    cfg_obj, cfg_param_obj = cfg_objs[type]
+    id_str = '%sid' % type
+    num_str = '%s_num' % type
     result = ''
     if request.method == 'POST':
         builder = Builder.objects.get(id=bot_id)
         data = request.POST.copy()
-        # get a step or create a newone
-        if 'stepid' in data and data['stepid']:
-            step = Step.objects.get(id=data['stepid'])
-            step.num = data['step_num']
-            del data['stepid']
-            del data['step_num']
+        # get a config or create a newone
+        if id_str in data and data[id_str]:
+            cfg_obj = cfg_obj.objects.get(id=data[id_str])
+            cfg_obj.num = data[num_str]
+            del data[id_str]
+            del data[num_str]
         else:
             config = Config.objects.get(id=data['config_type_id'])
-            step = Step(builder=builder, type=config, num=data['config_num'])
-            step.save()
+            cfg_obj = cfg_obj(builder=builder, type=config, num=data['config_num'])
+            cfg_obj.save()
             del data['config_type_id']
             del data['config_num']
 
         params_2_add = []
         # add and upate params
-        step_params = step.params.all()
+        params = cfg_obj.params.all()
         for p, v in data.items():
             v = type_sniffer(v)
             param_type = ConfigParam.objects.get(id=p)
-            s = step.params.filter(type=param_type)
+            s = cfg_obj.params.filter(type=param_type)
             if s:
                 s = s[0]
                 s.val = pickle.dumps(v)
@@ -158,92 +161,25 @@ def config_step_save(request, bot_id):
                                   default=(v==param_type.loads_default()))
                 params_2_add.append(param)
         if params_2_add:
-            step.params = params_2_add
-        step.save()
-        result = step.id
+            cfg_obj.params = params_2_add
+        cfg_obj.save()
+        result = cfg_obj.id
     return HttpResponse(result)
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def config_step_save(request, bot_id):
+    return _config_save(request, bot_id, 'step')
 
 
 @user_passes_test(lambda u: u.is_superuser)
 def config_status_save(request, bot_id):
-    result = ''
-    if request.method == 'POST':
-        master = Master.objects.get(id=bot_id)
-        data = request.POST.copy()
-        # get a status or create a newone
-        if 'configid' in data and data['configid']:
-            status = Status.objects.get(id=data['configid'])
-            del data['configid']
-        else:
-            config = Config.objects.get(id=data['config_type_id'])
-            status = Status(master=master, type=config)
-            status.save()
-            del data['config_type_id']
-
-        params_2_add = []
-        # update existing params
-        for p in status.params.all():
-            #TODO: update existing params
-            #      only to creating a new one
-            #      so just passing for now
-            # how: check if default, if changed, save it
-            #      then delete the key from the dict
-            #      so it's not reprocessed
-            #      and add the param to the params 2 add
-            pass
-        # add new params
-        for p, v in data.items():
-            param_type = ConfigParam.objects.get(id=p)
-            param = StatusParam(status=status, type=param_type, val=pickle.dumps(v),
-                                default=(v==param_type.loads_default()))
-            params_2_add.append(param)
-        status.params = params_2_add
-        status.save()
-        result = status.id
-
-    return HttpResponse(result)
+    return _config_save(request, bot_id, 'status')
 
 
 @user_passes_test(lambda u: u.is_superuser)
 def config_scheduler_save(request, bot_id):
-    result = ''
-    if request.method == 'POST':
-        master = Master.objects.get(id=bot_id)
-        data = request.POST.copy()
-        # get a scheduler or create a newone
-        if 'configid' in data and data['configid']:
-            scheduler = Scheduler.objects.get(id=data['configid'])
-            del data['configid']
-        else:
-            config = Config.objects.get(id=data['config_type_id'])
-            scheduler = Scheduler(master=master, type=config)
-            scheduler.save()
-            del data['config_type_id']
-
-        params_2_add = []
-        # update existing params
-        for p in scheduler.params.all():
-            #TODO: update existing params
-            #      only to creating a new one
-            #      so just passing for now
-            # how: check if default, if changed, save it
-            #      then delete the key from the dict
-            #      so it's not reprocessed
-            #      and add the param to the params 2 add
-            pass
-        # add new params
-        for p, v in data.items():
-            v = type_sniffer(v)
-            param_type = ConfigParam.objects.get(id=p)
-            if v != param_type.default:
-                param = SchedulerParam(
-                    scheduler=scheduler, type=param_type, val=pickle.dumps(v))
-                params_2_add.append(param)
-        scheduler.params = params_2_add
-        scheduler.save()
-        result = scheduler.id
-
-    return HttpResponse(result)
+    return _config_save(request, bot_id, 'scheduler')
 
 
 @user_passes_test(lambda u: u.is_superuser)
