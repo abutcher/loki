@@ -38,3 +38,28 @@ def config_importer(module, type):
     except Exception, e:
         new_config.delete()
         raise e
+
+def type_sniffer(value):
+    '''
+    takes a string as input and casts it to a typed value
+    '''
+    # force a string
+    if value[0] == value[-1] and value[0] in '"\'':
+        return value[1:-1]
+    # assume a list if a , is present
+    if ',' in value:
+        return map(sniffer, value.split(','))
+    # all numbers? cast to an int
+    num_check = filter(lambda x: x in '0123456789', list(value))
+    if len(num_check) == len(value):
+        return int(value)
+    # True or False? cast to bool
+    if value.upper() == 'TRUE':
+        return True
+    if value.upper() == 'FALSE':
+        return False
+    # None? cast to none
+    if value.upper() == 'NONE':
+        return None
+    # it's just a string... return it
+    return value

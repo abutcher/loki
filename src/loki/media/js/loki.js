@@ -1,6 +1,5 @@
 function saveconfig(type, bot, form_name) {
     $.post('/ajax/config/' + type + '/save/' + bot + '/', $("form#" + form_name).serialize(), function(data, textStatus) {
-       alert(data);
 	   if(textStatus == 'success') {
 	       $("div#" + type + "s div#new" + type).empty();
   	       var new_config = $('<div/>').load('/ajax/config/' + type + '/load/' + data + '/');

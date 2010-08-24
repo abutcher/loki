@@ -30,6 +30,7 @@ from loki.models import scheduler_content_type
 
 from loki.model_helpers import introspect_module
 from loki.helpers import config_importer
+from loki.helpers import type_sniffer
 from loki.forms import ConfigParamFormSet
 
 
@@ -143,6 +144,7 @@ def config_step_save(request, bot_id):
         # add and upate params
         step_params = step.params.all()
         for p, v in data.items():
+            v = type_sniffer(v)
             param_type = ConfigParam.objects.get(id=p)
             s = step.params.filter(type=param_type)
             if s:
@@ -231,6 +233,7 @@ def config_scheduler_save(request, bot_id):
             pass
         # add new params
         for p, v in data.items():
+            v = type_sniffer(v)
             param_type = ConfigParam.objects.get(id=p)
             if v != param_type.default:
                 param = SchedulerParam(
