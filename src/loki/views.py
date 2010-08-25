@@ -132,38 +132,38 @@ def _config_save(request, bot_id, type):
         data = request.POST.copy()
         # get a config or create a newone
         if id_str in data and data[id_str]:
-            cfg_obj = cfg_obj.objects.get(id=data[id_str])
+            cfgobj = cfg_obj.objects.get(id=data[id_str])
             cfg_obj.num = data[num_str]
             del data[id_str]
             del data[num_str]
         else:
             config = Config.objects.get(id=data['config_type_id'])
-            cfg_obj = cfg_obj(builder=builder, type=config, num=data['config_num'])
-            cfg_obj.save()
+            cfgobj = cfg_obj(builder=builder, type=config, num=data['config_num'])
+            cfgobj.save()
             del data['config_type_id']
             del data['config_num']
 
         params_2_add = []
         # add and upate params
-        params = cfg_obj.params.all()
+        params = cfgobj.params.all()
         for p, v in data.items():
             v = type_sniffer(v)
             param_type = ConfigParam.objects.get(id=p)
-            s = cfg_obj.params.filter(type=param_type)
+            s = cfgobj.params.filter(type=param_type)
             if s:
                 s = s[0]
                 s.val = pickle.dumps(v)
                 s.default=(v==param_type.loads_default())
                 s.save()
             else:
-                param = StepParam(step=step, type=param_type,
+                param = cfg_param_obj(step=cfgobj, type=param_type,
                                   val=pickle.dumps(v),
                                   default=(v==param_type.loads_default()))
                 params_2_add.append(param)
         if params_2_add:
-            cfg_obj.params = params_2_add
-        cfg_obj.save()
-        result = cfg_obj.id
+            cfgobj.params = params_2_add
+        cfgobj.save()
+        result = cfgobj.id
     return HttpResponse(result)
 
 
