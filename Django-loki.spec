@@ -44,9 +44,14 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING LICENSE
 %dir %{_datadir}/django/apps/loki/
 %{_datadir}/django/apps/loki/*
+%if 0%{?rhel}
 %{python_sitelib}/*egg-info
+%endif
 
 %changelog
+* Wed Aug 25 2010 Dan Radez <dradez@redhat.com> - 0.9.0-1
+- adding conditionals to handle egg info
+
 * Fri Jul 16 2010 Dan Radez <dradez@redhat.com> - 0.8.0-3
 - handling the egg info according to fedora packageing guidlines and releasing the 0.8.0 version
 
