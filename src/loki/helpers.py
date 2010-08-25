@@ -44,22 +44,32 @@ def type_sniffer(value):
     '''
     takes a string as input and casts it to a typed value
     '''
-    # force a string
-    if value and value[0] == value[-1] and value[0] in '"\'':
-        return value[1:-1]
-    # assume a list if a , is present
-    if ',' in value:
-        return map(type_sniffer, value.split(','))
-    # all numbers? cast to an int
-    if value.isdigit():
-        return int(value)
-    # True or False? cast to bool
-    if value.upper() == 'TRUE':
-        return True
-    if value.upper() == 'FALSE':
-        return False
-    # None? cast to none
-    if value.upper() == 'NONE':
-        return None
+    if value:
+        # force a string
+        if value[0] == value[-1] and value[0] in '"\'':
+            return value[1:-1]
+        if value[0] == '{':
+            value = value[1:-1]
+            value = value.split(',')
+            dict = {}
+            for i in value:
+                i = i.split(':')
+                if len(i) == 2:
+                    dict[i[0]] = type_sniffer(i[1])
+            return dict
+        # assume a list if a , is present
+        if ',' in value:
+            return map(type_sniffer, value.split(','))
+        # all numbers? cast to an int
+        if value.isdigit():
+            return int(value)
+        # True or False? cast to bool
+        if value.upper() == 'TRUE':
+            return True
+        if value.upper() == 'FALSE':
+            return False
+        # None? cast to none
+        if value.upper() == 'NONE':
+            return None
     # it's just a string... return it
     return value
