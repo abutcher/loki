@@ -45,11 +45,11 @@ def type_sniffer(value):
     takes a string as input and casts it to a typed value
     '''
     # force a string
-    if value[0] == value[-1] and value[0] in '"\'':
+    if value and value[0] == value[-1] and value[0] in '"\'':
         return value[1:-1]
     # assume a list if a , is present
     if ',' in value:
-        return map(sniffer, value.split(','))
+        return map(type_sniffer, value.split(','))
     # all numbers? cast to an int
     if value.isdigit():
         return int(value)
