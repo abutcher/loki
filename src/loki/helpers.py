@@ -59,7 +59,8 @@ def type_sniffer(value):
             return dict
         # assume a list if a , is present
         if ',' in value:
-            return map(type_sniffer, value.split(','))
+            return filter(lambda x: x,
+                       map(type_sniffer, value.split(',')))
         # all numbers? cast to an int
         if value.isdigit():
             return int(value)
@@ -72,4 +73,4 @@ def type_sniffer(value):
         if value.upper() == 'NONE':
             return None
     # it's just a string... return it
-    return value
+    return str(value)

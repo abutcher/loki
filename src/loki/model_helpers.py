@@ -43,10 +43,13 @@ def _generate_class(cls):
     gcls = cls.type.module.split('.')[-1]
     gprm = []
     for param in cls.params.all():
-        if type(param.loads_val()) == StringType:
+        if type(param.loads_val()) == StringType \
+                or type(param.loads_val()) == UnicodeType:
             pair_form = "%s='%s'"
-        elif type(param.loads_val()) == UnicodeType:
-            pair_form = "%s=u'%s'"
+        # buildbot doesn't like unicode added this case to the
+        # case above
+        #elif type(param.loads_val()) == UnicodeType:
+        #    pair_form = "%s=u'%s'"
         else:
             pair_form = "%s=%s"
         gprm.append(pair_form % (param.type.name,
