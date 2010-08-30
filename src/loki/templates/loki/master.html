@@ -58,7 +58,8 @@
         <span class="bold">{{ slave }}:</span>&nbsp;&nbsp;
         {% if slave.alive %}Running{% if user.is_superuser %} <a href="{% url loki.views.action 'hup',slave.master,slave %}">hup</a>
             :: pid {{ slave.pid }} :: <a href="{% url loki.views.action 'stop',slave.master,slave %}">Stop</a>{% endif %}
-        {% else %}Stopped{% if user.is_superuser %} :: <a href="{% url loki.views.action 'start',slave.master,slave %}">Start</a>{% endif %}{% endif %}
+        {% else %}Stopped{% if user.is_superuser %} :: <a href="{% url loki.views.action 'start',slave.master,slave %}">Start</a>{% endif %}
+        {% endif %}<br>
         {% endfor %}
         </div>
     {% endblock %}
