@@ -38,23 +38,29 @@ class HostAdmin(admin.ModelAdmin):
 
 
 class MasterAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'host', 'slave_port', 'web_port')
+    list_display_links = ('name', )
 
 
 class SlaveAdmin(admin.ModelAdmin):
-    list_display = ('master', 'name')
+    list_display = ('name', 'master', 'host')
     list_display_links = ('name', )
 
 
 class BuilderAdmin(admin.ModelAdmin):
     list_display = ('master', 'name')
     list_display_links = ('name', )
+    list_filter = ('master', 'name')
+    search_fields = ('name', )
+    ordering = ('name', )
     inlines = [StepInline, ]
 
 
 class ConfigAdmin(admin.ModelAdmin):
     inlines = [ConfigParamInline, ]
-    list_display = ('name', 'content_type')
+    list_display = ('name', 'module', 'content_type')
+    search_fields = ('name', 'module')
+    ordering = ('name', )
 
 
 class StatusAdmin(admin.ModelAdmin):
