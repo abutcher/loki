@@ -52,14 +52,20 @@
                 <input type="submit" value="Add Scheduler">
             </form>
         {% endif %}
-        <div class="bold">Slaves:</div>
+        <div class="bold">Builders:</div>
+        <div id="slaves" style="float: left;" class="drawer">
+        {% for builder in master.builders.all %}
+        <span class="bold">{{ builder }}:</span>&nbsp;&nbsp; {{ builder.status }}
+        {% endfor %}
+        </div>
+        <div class="bold" style="clear:both;">Slaves:</div>
         <div id="slaves" style="float: left;" class="drawer">
         {% for slave in master.slaves.all %}
         <span class="bold">{{ slave }}:</span>&nbsp;&nbsp;
         {% if slave.alive %}Running{% if user.is_superuser %} <a href="{% url loki.views.action 'hup',slave.master,slave %}">hup</a>
             :: pid {{ slave.pid }} :: <a href="{% url loki.views.action 'stop',slave.master,slave %}">Stop</a>{% endif %}
         {% else %}Stopped{% if user.is_superuser %} :: <a href="{% url loki.views.action 'start',slave.master,slave %}">Start</a>{% endif %}
-        {% endif %}<br>
+        {% endif %}&nbsp;&nbsp;{{ slave.status }}<br>
         {% endfor %}
         </div>
     {% endblock %}

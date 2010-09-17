@@ -109,3 +109,5 @@ INSTALLED_APPS = (
     'loki',
     'south',
 )
+
+CACHE_BACKEND = 'db://loki_cache'

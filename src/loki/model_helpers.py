@@ -124,7 +124,7 @@ def introspect_module(path='buildbot.steps'):
 
 
 def build_bot_run(options):
-    if '--quiet' not in options:
+    if '--quiet' not in options and not settings.DEBUG:
         options.insert(1, '--quiet')
     config = Options()
     try:

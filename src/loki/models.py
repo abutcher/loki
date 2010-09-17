@@ -16,6 +16,7 @@ from django.db.models.signals import post_save
 from django.db.models.signals import post_delete
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from django.core.cache import cache
 
 from loki.settings import *
 from loki.bind_administration import bind_administration
@@ -294,6 +295,10 @@ class Slave(Bot):
         (self.master.host, self.master.slave_port, self.name, self.passwd))
     cfg_file = 'buildbot.tac'
 
+    def status(self):
+        status = cache.get('%s-slave-%s' % (self.master.name, self.name))
+        return status
+
     def __unicode__(self):
         return self.name
 
@@ -310,6 +315,10 @@ class Builder(models.Model):
     name = models.SlugField(max_length=25, unique=True)
     master = models.ForeignKey(Master, related_name='builders')
     slaves = models.ManyToManyField(Slave, related_name='builders')
+
+    def status(self):
+        status = cache.get('%s-builder-%s' % (self.master.name, self.name))
+        return status
 
     def __unicode__(self):
         return self.name
