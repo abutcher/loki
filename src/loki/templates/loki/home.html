@@ -1,6 +1,9 @@
 {% extends "loki/base.html" %}
+    {% load loki_tags %}
     {% block title %}
-    Home
+        {% ifequal user.is_superuser 1 %}
+        Home{% else %}Builders
+        {% endifequal %}
     {% endblock %}
     {% block content %}
         {% ifequal user.is_superuser 1 %}
@@ -25,5 +28,16 @@
         <li>{{ host.hostname }}: {{ host.uptime }}</li>
         {% endfor %}
         </ul>
+        <span class="bold">Builders: </span>
         {% endifequal %}
+
+        <table border="0" cellpadding="10">
+        {% for builder in builders|tablesort:5 %}
+            {% cycle '<tr>' '' '' '' '' %}
+                <td>{% if builder %}<a href="{% url loki.views.home builder.master,builder %}">{{ builder }}</a>
+                {% else %}&nbsp;{% endif %}</td>
+            {% cycle '' '' '' '' '</tr>' %}
+        {% endfor %}
+        </table>
+
     {% endblock %}

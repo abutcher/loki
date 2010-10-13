@@ -40,3 +40,26 @@ def status(context):
 def scheduler(context):
     return {'scheduler': context['scheduler'],
             'user': context['user'], }
+
+@register.filter
+def tablesort(value, cols):
+    tbl_srt = []
+    row_ct = 0
+
+    if value:
+        # calc how many rows are needed
+        rows = float(len(value))/cols
+        if rows > int(rows):
+            rows = int(rows)+1
+        else:
+            rows = int(rows)
+        # build an empty list to return
+        for x in range(0, rows*cols):
+            tbl_srt.append(None)
+        for x, i in enumerate(value):
+            tbl_srt[x/rows+row_ct*cols] = i
+            if row_ct == rows-1:
+                row_ct = 0
+            else:
+                row_ct += 1
+    return tbl_srt

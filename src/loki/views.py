@@ -44,7 +44,6 @@ def home(request, master=None, builder=None):
     context['status'] = Config.objects.filter(content_type=status_content_type)
     context['scheduler'] = Config.objects.filter(
         content_type=scheduler_content_type)
-    render_template = 'home'
     if builder:
         render_template = 'builder'
         builder = Builder.objects.get(name=builder)
@@ -55,7 +54,9 @@ def home(request, master=None, builder=None):
         master = Master.objects.get(name=master)
         context['master'] = master
     else:
+        render_template = 'home'
         context['hosts'] = Host.objects.exclude(id=1)
+        context['builders'] = Builder.objects.order_by('name')
     return render_to_response('loki/%s.html' % render_template, context,
                               context_instance=RequestContext(request))
 

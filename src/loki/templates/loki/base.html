@@ -14,8 +14,16 @@
        <script>
            // JavaScript
            $(document).ready(function(){
-           {% block script %}{% endblock %}
+               $("h3.menu_head").click(function(){  
+                   //slides the element with class "menu_body" when mouse is over the paragraph
+                   //$(this).css({backgroundImage: "url(up.png)"}).next("ul.menu_body").slideDown(500).siblings("ul.menu_body").slideUp("slow");
+                   $(this).next("ul.menu_body").slideDown(500).siblings("ul.menu_body").slideUp("slow");
+               });
+               $("span.drawer_title").click(toggleDrawer);
+               setTimeout("close_alert_msg()", 5000);
+           {% block script_ready %}{% endblock %}
            });
+           {% block script %}{% endblock %}
        </script>
        {% block head %}{% endblock %}
 </head>
