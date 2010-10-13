@@ -23,6 +23,11 @@
                setTimeout("close_alert_msg()", 5000);
            {% block script_ready %}{% endblock %}
            });
+           function toggleDrawer() {
+               if ($("div.drawer").is(":visible")) { 
+                   $("div.drawer").slideUp(500); }
+               else { $("div.drawer").slideDown(500); }
+           };
            {% block script %}{% endblock %}
        </script>
        {% block head %}{% endblock %}
