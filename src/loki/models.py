@@ -177,6 +177,8 @@ class Bot(models.Model):
                 pid_fd = open(pid_file, 'r')
                 pid = pid_fd.read()
                 pid_fd.close()
+            if pid and not os.path.exists(os.path.join('/proc', pid)):
+                pid = 0
         else:
             # remote bot
             import paramiko
@@ -192,9 +194,11 @@ class Bot(models.Model):
                 f = sftp.file(pid_file, 'r')
                 pid = f.readline()
                 f.close()
+                p = os.path.join('/proc', pid)
+                sftp.stat(p)
             except:
-                # for now we'll just assume the file didn't exist
-                pass
+                # for now we'll just assume the file or the proc didn't exist
+                pid = 0
             sftp.close()
             ssh.close()
         return int(pid)
