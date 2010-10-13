@@ -7,28 +7,35 @@
     {% endblock %}
     {% block content %}
         {% ifequal user.is_superuser 1 %}
-        <div style="float:left;padding-right:50px;">
-        <ul>All Masters
-        <li><a href="{% url loki.views.action 'start','all' %}">Start</a></li>
-        <li><a href="{% url loki.views.action 'stop','all' %}">Stop</a></li>
-        <li><a href="{% url loki.views.action 'restart','all' %}">Restart</a></li>
-        <li><a href="{% url loki.views.action 'hup','all' %}">Hup</a></li>
-        </ul>
+        <div>
+            <div style="float:left;padding-right:50px;">
+            <ul>All Masters
+            <li><a href="{% url loki.views.action 'start','all' %}">Start</a></li>
+            <li><a href="{% url loki.views.action 'stop','all' %}">Stop</a></li>
+            <li><a href="{% url loki.views.action 'restart','all' %}">Restart</a></li>
+            <li><a href="{% url loki.views.action 'hup','all' %}">Hup</a></li>
+            </ul>
+            </div>
+            <div style="float:left;padding-right:50px;">
+            <ul>All Slaves
+            <li><a href="{% url loki.views.action 'start','all','all' %}">Start</a></li>
+            <li><a href="{% url loki.views.action 'stop','all','all' %}">Stop</a></li>
+            <li><a href="{% url loki.views.action 'restart','all','all' %}">Restart</a></li>
+            <li><a href="{% url loki.views.action 'hup','all','all' %}">Hup</a></li>
+            </ul>
+            </div>
+            <div style="float:left;">
+            <ul>Hosts
+            {% for host in hosts %}
+            <li>{{ host.hostname }}: {{ host.uptime }}</li>
+            {% endfor %}
+            </ul>
+            </div>
         </div>
-        <div style="float:left;">
-        <ul>All Slaves
-        <li><a href="{% url loki.views.action 'start','all','all' %}">Start</a></li>
-        <li><a href="{% url loki.views.action 'stop','all','all' %}">Stop</a></li>
-        <li><a href="{% url loki.views.action 'restart','all','all' %}">Restart</a></li>
-        <li><a href="{% url loki.views.action 'hup','all','all' %}">Hup</a></li>
-        </ul>
-        </div>
-        <ul>Hosts
-        {% for host in hosts %}
-        <li>{{ host.hostname }}: {{ host.uptime }}</li>
-        {% endfor %}
-        </ul>
-        <span class="bold">Builders: </span>
+        <br>
+        <div class="bold" style="clear:left;">Builders:
+        {% else %}
+        <div class="bold">
         {% endifequal %}
 
         <table border="0" cellpadding="10">
@@ -39,5 +46,6 @@
             {% cycle '' '' '' '' '</tr>' %}
         {% endfor %}
         </table>
+        </div>
 
     {% endblock %}

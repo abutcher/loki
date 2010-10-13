@@ -12,7 +12,10 @@
 
     {% block content %}
         {% block title %}Builder: {{ builder }}{% endblock %}<br>
+        master: <a href="{% url loki.views.home builder.master %}">{{ builder.master }}</a><br>
         slaves: {{ builder.slaves.all }}<br>
+        status: <a href="http://{{ builder.master.host.hostname }}:{{ builder.master.web_port }}/builders/{{ builder }}">
+                    http://{{ builder.master.host.hostname }}:{{ builder.master.web_port }}/builders/{{ builder }}</a><br>
         steps:<br>
         <div id="steps" style="float: left;">
         {% for step in builder.steps.all %}

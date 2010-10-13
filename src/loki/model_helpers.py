@@ -15,6 +15,7 @@ import pickle
 from types import StringType
 from types import UnicodeType
 
+from django.conf import settings
 from buildbot.scripts.runner import Options
 from buildbot.scripts.runner import createMaster
 from buildbot.scripts.runner import createSlave
