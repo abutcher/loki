@@ -3,7 +3,7 @@
 
 Name:           Django-loki
 Version:        0.9.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A Django web interface to manage Buildbots
 
 Group:          Applications/Internet

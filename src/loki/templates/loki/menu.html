@@ -1,11 +1,9 @@
         {% for master in bots %}
             <h3 class="menu_head"><a href="{% url loki.views.home master %}">{{ master }}</a>
                 <span id="{% if master.alive %}running{% else %}stopped{% endif %}">&bull;</span></h3>
-            {% comment %}
             <ul class="menu_body">
                 {% for builder in master.builders.all %}
                     <li><a href="{% url loki.views.home master,builder %}">{{ builder }}</a></li>
                 {% endfor %}
             </ul><p>
-            {% endcomment %}
         {% endfor %}
