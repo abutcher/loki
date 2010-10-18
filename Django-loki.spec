@@ -2,7 +2,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name:           Django-loki
-Version:        0.9.1
+Version:        0.9.2
 Release:        2%{?dist}
 Summary:        A Django web interface to manage Buildbots
 

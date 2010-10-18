@@ -1,6 +1,6 @@
 {% extends "loki/base.html" %}
     {% load loki_tags %}
-    {% block script %}
+    {% block script_ready %}
         $("form#addstep").submit(function() {
             $("div#steps div#newstep").load('/ajax/config/step/add/{{ builder.id }}/' + this.step.value + '/');
             return false;

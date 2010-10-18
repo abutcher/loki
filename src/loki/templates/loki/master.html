@@ -1,6 +1,6 @@
 {% extends "loki/base.html" %}
 {% load loki_tags %}
-    {% block script %}
+    {% block script_ready %}
         $("form#addstatus").submit(function() {
             $("div#statuss div#newstatus").load('/ajax/config/status/add/{{ master.id }}/' + this.status.value + '/');
             return false;
