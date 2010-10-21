@@ -6,9 +6,12 @@
             return false;
         });
     {% endblock %}
+
+    {% comment %}
     {% block drawer_title %}
     drawer title
     {% endblock %}
+    {% endcomment %}
 
     {% block content %}
         {% block title %}Builder: {{ builder }}{% endblock %}<br>

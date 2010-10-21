@@ -150,7 +150,7 @@ def build_bot_run(options):
     ## following adapted from
     ## http://stackoverflow.com/questions/972362/spawning-process-from-python
     ## similar recipe http://code.activestate.com/recipes/278731/
-    elif command == "start":
+    elif command in ["start", "restart", "reconfig", "sighup"]: 
         child_pid = os.fork()
         if child_pid == 0:
             # forked child becomes session leader
@@ -180,9 +180,15 @@ def build_bot_run(options):
                     # pass for now, this is kinda experimental
                     pass
 
-                # finally execute the buildbot start script
-                from buildbot.scripts.startup import start
-                start(so)
+                # finally execute the buildbot command
+                if command == "start":
+                    from buildbot.scripts.startup import start
+                    start(so)
+                elif command == "restart":
+                    restart(so)
+                elif command == "reconfig" or command == "sighup":
+                    from buildbot.scripts.reconfig import Reconfigurator
+                    Reconfigurator().run(so)
                 os._exit(0)
             else:
                 # done with child process
@@ -197,11 +203,12 @@ def build_bot_run(options):
             pass
         except OSError:
             pass
-    elif command == "restart":
-        restart(so)
-    elif command == "reconfig" or command == "sighup":
-        from buildbot.scripts.reconfig import Reconfigurator
-        Reconfigurator().run(so)
+    # moved up into the daemon code
+    #elif command == "restart":
+    #    restart(so)
+    #elif command == "reconfig" or command == "sighup":
+    #    from buildbot.scripts.reconfig import Reconfigurator
+    #    Reconfigurator().run(so)
     elif command == "sendchange":
         sendchange(so, True)
     elif command == "debugclient":
