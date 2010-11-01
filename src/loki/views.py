@@ -82,7 +82,7 @@ def action(request, action, master, slave=None):
             master.bot_run(action)
         time.sleep(1)
 
-    if masters.count() == 1:
+    if len(masters) == 1:
         return HttpResponseRedirect(reverse('loki.views.home',
                                     args=[master]))
     else:
