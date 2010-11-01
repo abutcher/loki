@@ -17,6 +17,7 @@ from django.db.models.signals import post_delete
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.core.cache import cache
+from django.template import Context, loader
 
 from loki.settings import *
 from loki.bind_administration import bind_administration
@@ -273,17 +274,21 @@ class Master(Bot):
                          x.module.split('.')[-1])
 
         #generate the template
-        return _template('%smaster.cfg.tpl' % BUILDBOT_TMPLS,
-                botname=self.name,
-                webhost=self.host,
-                webport=self.web_port,
-                slaveport=self.slave_port,
-                buildslaves=buildslaves,
-                imports=imports,
-                factories=factories,
-                builders=','.join(builders),
-                statuses=statuses,
-                schedulers=schedulers)
+        t = loader.get_template('buildbot/master.cfg.tpl')
+        c = Context({
+            'latest_poll_list': latest_poll_list,
+            'botname': self.name,
+            'webhost': self.host,
+            'webport': self.web_port,
+            'slaveport': self.slave_port,
+            'buildslaves': buildslaves,
+            'imports': imports,
+            'factories': factories,
+            'builders': ','.join(builders),
+            'statuses': statuses,
+            'schedulers': schedulers,
+        })
+        return t.render(c)
 
 
 class Slave(Bot):
@@ -307,12 +312,15 @@ class Slave(Bot):
         return self.name
 
     def generate_cfg(self):
-        return _template('%sslave.cfg.tpl' % BUILDBOT_TMPLS,
-                basedir=os.path.abspath(self.path),
-                masterhost=self.master.host,
-                slavename=self.name,
-                slaveport=self.master.slave_port,
-                slavepasswd=self.passwd)
+        t = loader.get_template('buildbot/slave.cfg.tpl')
+        c = Context({
+            'basedir': os.path.abspath(self.path),
+            'masterhost': self.master.host,
+            'slavename': self.name,
+            'slaveport': self.master.slave_port,
+            'slavepasswd': self.passwd,
+        })
+        return t.render(c)
 
 
 class Builder(models.Model):
