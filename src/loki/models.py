@@ -17,7 +17,8 @@ from django.db.models.signals import post_delete
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.core.cache import cache
-from django.template import Context, loader
+from django.template import Context
+from django.template.loader import render_to_string
 
 from loki.settings import *
 from loki.bind_administration import bind_administration
@@ -223,7 +224,7 @@ class Master(Bot):
 
     def generate_cfg(self):
         buildslaves = ''
-        factories = ''
+        factories = []
         statuses = ''
         schedulers = ''
         imports = ''
@@ -231,27 +232,22 @@ class Master(Bot):
         modules = []
         ct = 1
 
-        for slave in self.slaves.all():
-            #generate the BuildSlave objects
-            buildslaves += "\n    BuildSlave('%s', '%s')," % \
-                (slave.name, slave.passwd)
-
         for builder in self.builders.all():
             #create buildfactory
             b = '%s_%s' % (self.name, builder.name)
             b = b.replace('-', '__dash__')
-            factories += '%s = factory.BuildFactory()\n' % b
+            slave_list = map(lambda s: str(s.name), builder.slaves.all())
+            factory = {'factory': b,
+                       'steps': [],
+                       'ct': ct,
+                       'name': builder.name,
+                       'slavenames': slave_list,
+            }
             for step in builder.steps.all():
                 if step.type not in modules:
                     modules.append(step.type)
-                factories += "%s.addStep(%s)\n" % (b,
-                                      _generate_class(step))
-            #create builder from factory
-            slave_list = map(lambda s: str(s.name), builder.slaves.all())
-            factories += "b%s = {'name': '%s',\n" % (ct, builder.name)
-            factories += "      'slavenames': %s,\n" % slave_list
-            factories += "      'builddir': '%s',\n" % builder.name
-            factories += "      'factory': %s, }\n\n" % b
+                factory['steps'].append(_generate_class(step))
+            factories.append(factory)
             # remember the builders
             builders.append('b%s' % ct)
             ct += 1
@@ -274,21 +270,19 @@ class Master(Bot):
                          x.module.split('.')[-1])
 
         #generate the template
-        t = loader.get_template('buildbot/master.cfg.tpl')
         c = Context({
-            'latest_poll_list': latest_poll_list,
             'botname': self.name,
             'webhost': self.host,
             'webport': self.web_port,
             'slaveport': self.slave_port,
-            'buildslaves': buildslaves,
+            'buildslaves': self.slaves.all(),
             'imports': imports,
             'factories': factories,
             'builders': ','.join(builders),
             'statuses': statuses,
             'schedulers': schedulers,
         })
-        return t.render(c)
+        return render_to_string('buildbot/master.cfg', c)
 
 
 class Slave(Bot):
@@ -312,7 +306,6 @@ class Slave(Bot):
         return self.name
 
     def generate_cfg(self):
-        t = loader.get_template('buildbot/slave.cfg.tpl')
         c = Context({
             'basedir': os.path.abspath(self.path),
             'masterhost': self.master.host,
@@ -320,7 +313,7 @@ class Slave(Bot):
             'slaveport': self.master.slave_port,
             'slavepasswd': self.passwd,
         })
-        return t.render(c)
+        return render_to_string('buildbot/slave.cfg', c)
 
 
 class Builder(models.Model):
