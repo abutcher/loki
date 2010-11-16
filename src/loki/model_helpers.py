@@ -8,6 +8,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+import sys
 import os
 import inspect
 import pickle
@@ -164,6 +165,10 @@ def build_bot_run(options):
                 except (AttributeError, ValueError):
                     maxfd = 1024
 
+                f = open('%stwistd.log' % options[1], 'a')
+                sys.stdout = f
+                sys.stderr = f
+
                 for fd in range(maxfd):
                     try:
                         os.close(fd)
@@ -189,6 +194,7 @@ def build_bot_run(options):
                 elif command == "reconfig" or command == "sighup":
                     from buildbot.scripts.reconfig import Reconfigurator
                     Reconfigurator().run(so)
+                f.close()
                 os._exit(0)
             else:
                 # done with child process
