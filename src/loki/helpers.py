@@ -57,8 +57,8 @@ def type_sniffer(value):
                 if len(i) == 2:
                     dict[i[0]] = type_sniffer(i[1])
             return dict
-        # assume a list if a , is present
-        if ',' in value:
+        # assume a list if wrapped with [] or a , is present
+        if (value[0] == '[' and value[-1] == ']') or ',' in value:
             return filter(lambda x: x,
                        map(type_sniffer, value.split(',')))
         # all numbers? cast to an int
