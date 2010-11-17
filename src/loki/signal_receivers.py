@@ -24,19 +24,29 @@ def post_save_bot(sender, instance, created, **kwargs):
        - created: if a new record was created
        - kwargs: any keyword arguments
     """
+    config = True
     # create bot if new
     if created:
         instance.bot_create()
+    
+    if hasattr(instance, 'gen_ports') and (not instance.slave_port or not instance.web_port):
+            instance.slave_port, instance.web_port = instance.gen_ports()
+            instance.save()
+            # this save will re config so don't use the bot_cfg below
+            config = False
 
-    # update the config file
-    instance.bot_cfg()
+    if config:
+        # update the config file
+        instance.bot_cfg()
 
     if hasattr(instance, 'master'):
         instance.master.bot_cfg()
         if instance.master.alive:
+            # reread the new config
             instance.master.bot_reconfig()
 
     if instance.alive:
+        # reread the new config
         instance.bot_reconfig()
 
 

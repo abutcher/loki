@@ -212,13 +212,20 @@ class Bot(models.Model):
 
 class Master(Bot):
     host = models.ForeignKey(Host, related_name='masters')
-    slave_port = models.IntegerField(max_length=5)
-    web_port = models.IntegerField(max_length=5)
+    slave_port = models.IntegerField(max_length=5, blank=True, null=True, unique=True,
+                help_text="blank value will autogenerate id + BB_SLAVE_PORT_START")
+    web_port = models.IntegerField(max_length=5, blank=True, null=True, unique=True,
+                help_text="blank value will autogenerate id + BB_WEB_PORT_START")
 
     base_path = property(lambda self: os.path.join(self.host.base_dir, \
                                      BUILDBOT_MASTERS))
     path = property(lambda self: os.path.join(self.host.base_dir, \
                                      BUILDBOT_MASTERS, self.name))
+
+    def gen_ports(self):
+        slave_port = filter(lambda x: x, [self.slave_port, BB_SLAVE_PORT_START + self.id])[0]
+        web_port = filter(lambda x: x, [self.web_port, BB_WEB_PORT_START + self.id])[0]
+        return (slave_port, web_port)
 
     buildbot_create = 'create-master %s'
     cfg_file = 'master.cfg'

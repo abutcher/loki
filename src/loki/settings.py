@@ -18,3 +18,5 @@ if BUILDBOT_TMPLS[-1] != '/':
     BUILDBOT_TMPLS = '%s/' % BUILDBOT_TMPLS
 BUILDBOT_MASTERS = getattr(settings, 'BUILDBOT_MASTERS', 'masters')
 BUILDBOT_SLAVES = getattr(settings, 'BUILDBOT_SLAVES', 'slaves')
+BB_SLAVE_PORT_START = getattr(settings, 'BB_SLAVE_PORT_START', 8000)
+BB_WEB_PORT_START = getattr(settings, 'BB_WEB_PORT_START', 9000)
