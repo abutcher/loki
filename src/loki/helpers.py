@@ -48,10 +48,10 @@ def type_sniffer(value):
     if value:
         # strip unicode and force a str
         if value[0] == 'u' and value[1] == value[-1]:
-            return value[2:-1]
+            return str(value[2:-1])
         # force a string
         if value[0] == value[-1] and value[0] in '"\'':
-            return value[1:-1]
+            return str(value[1:-1])
         if value[0] == '{':
             value = value[1:-1]
             value = value.split(',')
@@ -59,7 +59,7 @@ def type_sniffer(value):
             for i in value:
                 i = i.split(':')
                 if len(i) == 2:
-                    dict[i[0]] = type_sniffer(i[1])
+                    dict[type_sniffer(i[0])] = type_sniffer(i[1])
             return dict
         # assume a list if wrapped with [] or a , is present
         if (value[0] == '[' and value[-1] == ']') or ',' in value:
