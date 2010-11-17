@@ -10,6 +10,10 @@
 
 import os
 import pickle
+try:
+    import paramiko
+except:
+    paramiko = None
 
 from django.db import models
 from django.db.models.signals import post_save
@@ -52,7 +56,9 @@ class Host(models.Model):
     uptime = property(lambda self: self._uptime())
 
     def _uptime(self):
-        import paramiko
+        if not paramiko:
+            return "Paramiko is not installed. Uptime not supported."
+
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(self.host.hostname,
@@ -60,8 +66,6 @@ class Host(models.Model):
             password=self.host.password,
         allow_agent=True, look_for_keys=True)
         stdin, stdout, stderr = ssh.exec_command(command)
-        print stdout.readlines()
-        print stderr.readlines()
         ssh.close()
         return stdout.readline()
 
@@ -140,9 +144,10 @@ class Bot(models.Model):
                 action = '%s %s' % (action, self.path)
             if action:
                 build_bot_run(action.split(' '))
+        elif not paramiko:
+            return "Paramiko is not installed. Remote bot management is not supported."
         else:
             # remote bot
-            import paramiko
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.connect(self.host.hostname,
@@ -165,8 +170,6 @@ class Bot(models.Model):
                 else:
                     command = 'buildbot %s %s' % (action, self.path)
                 stdin, stdout, stderr = ssh.exec_command(command)
-                print stdout.readlines()
-                print stderr.readlines()
             ssh.close()
 
     def pid(self):
@@ -180,6 +183,8 @@ class Bot(models.Model):
                 pid_fd.close()
             if pid and not os.path.exists(os.path.join('/proc', pid)):
                 pid = 0
+        elif not paramiko:
+            return "Paramiko is not installed. Remote bot management is not supported."
         else:
             # remote bot
             import paramiko
@@ -316,9 +321,12 @@ class Slave(Bot):
 
 
 class Builder(models.Model):
-    name = models.SlugField(max_length=25, unique=True)
+    name = models.SlugField(max_length=25)
     master = models.ForeignKey(Master, related_name='builders')
     slaves = models.ManyToManyField(Slave, related_name='builders')
+
+    class Meta:
+        unique_together = ("name", "master")
 
     def status(self):
         status = cache.get('%s-builder-%s' % (self.master.name, self.name))
