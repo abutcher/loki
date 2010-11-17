@@ -30,14 +30,6 @@ from loki.thread import BuildBotStart
 loki_pwd = os.path.abspath('.')
 
 
-def _template(tpl, **vars):
-    """
-    tpl: template file path
-    **vars: variables to interpolate into the template
-    """
-    return open(tpl, 'r').read() % vars
-
-
 def _generate_class(cls):
     """
     TODO: Document me!
@@ -231,60 +223,3 @@ def build_bot_run(options):
         doCheckConfig(so)
 
     os.chdir(loki_pwd)
-
-def generate_master_cfg(master):
-    """
-    TODO: Document me
-    """
-    buildslaves = ''
-    builders = []
-    factories = ''
-    modules = []
-    statuses = ''
-    schedulers = ''
-    ct = 1
-    for slave in master.slaves:
-        #remebers the slaves
-        buildslaves += "\n    BuildSlave('%s', '%s')," % \
-            (slave.name, slave.passwd)
-        #create buildfactory
-        b = '%s_%s' % (master.name, slave.name)
-        factories += '%s = factory.BuildFactory()\n' % b
-        for step in slave.steps:
-            if step.module not in modules:
-                modules.append(step.module)
-            factories += "%s.addStep(%s)\n" % (b,
-                                  _generate_class(step))
-        #create builder from factory
-        factories += "b%s = {'name': '%s',\n" % (ct, slave.name)
-        factories += "      'slavename': '%s',\n" % slave.name
-        factories += "      'builddir': '%s',\n" % slave.name
-        factories += "      'factory': %s, }\n\n" % b
-        # remember the builders
-        builders.append('b%s' % ct)
-        ct += 1
-
-    #generate statuses
-    for status in master.statuses:
-        statuses += "c['status'].append(%s)" % _generate_class(status)
-        modules.append(status.module)
-
-    #restructure the imports
-    imports = ''
-    for x in modules:
-        imports += 'from %s import %s\n' % (
-                    '.'.join(x.split('.')[:-1]),
-                    x.split('.')[-1])
-
-    #generate the template
-    t = _template('master.cfg.tpl',
-               botname=master.name,
-               webhost=master.server,
-               webport=master.web_port,
-               slaveport=master.slave_port,
-               buildslaves=buildslaves,
-               imports=imports,
-               factories=factories,
-               builders=','.join(builders),
-               statuses=statuses,
-               schedulers=schedulers)

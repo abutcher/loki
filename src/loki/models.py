@@ -25,7 +25,6 @@ from loki.bind_administration import bind_administration
 from loki.signal_receivers import post_save_bot
 from loki.signal_receivers import post_delete_bot
 from loki.signal_receivers import post_save_config
-from loki.model_helpers import _template
 from loki.model_helpers import _generate_class
 from loki.model_helpers import build_bot_run
 
