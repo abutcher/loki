@@ -50,7 +50,7 @@ def home(request, master=None, builder=None):
         render_template = 'builder'
         builder = Builder.objects.get(name=builder)
         context['builder'] = builder
-
+        context['master'] = builder.master
     elif master:
         render_template = 'master'
         master = Master.objects.get(name=master)
