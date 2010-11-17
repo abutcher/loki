@@ -14,7 +14,9 @@
     {% endcomment %}
 
     {% block content %}
-        {% block title %}Builder: {{ builder }}{% endblock %}<br>
+        {% block title %}Builder: {{ builder }}{% endblock %}
+        <a href="{% url loki.views.clone builder.master.name,builder.name %}" title="Clone this Builder">
+            <img src="/media/loki/images/cat-li.gif" alt="Clone" align="right"></a><br>
         master: <a href="{% url loki.views.home builder.master %}">{{ builder.master }}</a><br>
         slaves: {{ builder.slaves.all }}<br>
         status: <a href="http://{{ builder.master.host.hostname }}:{{ builder.master.web_port }}/builders/{{ builder }}">

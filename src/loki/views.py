@@ -11,6 +11,8 @@
 import time
 import pickle
 
+from copy import deepcopy
+
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -31,7 +33,7 @@ from loki.models import scheduler_content_type
 from loki.model_helpers import introspect_module
 from loki.helpers import config_importer
 from loki.helpers import type_sniffer
-from loki.forms import ConfigParamFormSet
+from loki.forms import BuilderForm
 
 
 def home(request, master=None, builder=None):
@@ -300,4 +302,37 @@ def import_config(request, type):
                 'type': type,
                 'classes': introspected, }
     return render_to_response('loki/import.html', context,
+                              context_instance=RequestContext(request))
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def clone(request, master, builder):
+    bots = Master.objects.all()
+    builder = Builder.objects.get(name=builder, master=bots.get(name=master))
+    new_builder = deepcopy(builder)
+    new_builder.name = "NewBuilder"
+    if request.method == 'POST':
+        new_builder.id = None
+        form = BuilderForm(request.POST, instance=new_builder)
+        form.save()
+        # no copy the steps
+        for step in builder.steps.all():
+            params = step.params.all()
+            step = deepcopy(step)
+            step.id = None
+            step.builder = new_builder
+            step.save()
+            # include the steps params
+            for param in params:
+                param = deepcopy(param)
+                param.id = None
+                param.step = step
+                param.save()
+            
+    else:
+        form = BuilderForm(instance=new_builder)
+    context = {'form': form,
+               'bots': bots,
+               'builder': builder, }
+    return render_to_response('loki/clone.html', context,
                               context_instance=RequestContext(request))

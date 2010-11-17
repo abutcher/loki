@@ -33,6 +33,7 @@ urlpatterns = patterns('loki.views',
     (r'^admin/', include(admin.site.urls)),
     (r'^(start|stop|restart|reconfig|hup)/([^/]+)/$', 'action'),
     (r'^(start|stop|restart|reconfig|hup)/([^/]+)/([^/]+)/$', 'action'),
+    (r'^clone/([^/]+)/([^/]+)/$', 'clone'),
     (r'^([^/]+)/$', 'home'),
     (r'^([^/]+)/([^/]+)/$', 'home'),
 )
