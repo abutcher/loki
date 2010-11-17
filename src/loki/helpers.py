@@ -44,7 +44,11 @@ def type_sniffer(value):
     '''
     takes a string as input and casts it to a typed value
     '''
+    value = value.strip()
     if value:
+        # strip unicode and force a str
+        if value[0] == 'u' and value[1] == value[-1]:
+            return value[2:-1]
         # force a string
         if value[0] == value[-1] and value[0] in '"\'':
             return value[1:-1]
@@ -59,6 +63,8 @@ def type_sniffer(value):
             return dict
         # assume a list if wrapped with [] or a , is present
         if (value[0] == '[' and value[-1] == ']') or ',' in value:
+            if value[0] == '[':
+                value=value[1:-1]
             return filter(lambda x: x,
                        map(type_sniffer, value.split(',')))
         # all numbers? cast to an int
