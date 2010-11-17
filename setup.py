@@ -135,13 +135,13 @@ class DjangoTestCommand(SetupBuildCommand):
         """
         Simply executes the django test cases.
         """
-        try:
+        #try:
             # Import yaml just to make sure it's available since the
             # tests need it
-            import yaml
-            os.system('./src/example_project/manage.py test')
-        except ImportError, ie:
-            print >> sys.stderr, "You must have PyYAML installed to test."
+            #import yaml
+        os.system('./example_project/manage.py test')
+        #except ImportError, ie:
+        #    print >> sys.stderr, "You must have PyYAML installed to test."
 
 
 def get_sources(map_list):
