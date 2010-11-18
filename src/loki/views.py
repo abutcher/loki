@@ -329,6 +329,8 @@ def clone(request, master, builder):
                 param.id = None
                 param.step = step
                 param.save()
+        return HttpResponseRedirect(reverse('loki.views.home',
+                    args=[new_builder.master.name, new_builder.name]))
             
     else:
         form = BuilderForm(instance=new_builder)
