@@ -227,8 +227,8 @@ class Master(Bot):
     def generate_cfg(self):
         buildslaves = ''
         factories = []
-        statuses = ''
-        schedulers = ''
+        statuses = []
+        schedulers = []
         imports = ''
         builders = []
         modules = []
@@ -256,13 +256,12 @@ class Master(Bot):
 
         #generate status
         for status in self.status.all():
-            statuses += "c['status'].append(%s)" % _generate_class(status)
+            statuses.append(_generate_class(status))
             modules.append(status.type)
 
         #generate schedulers
         for scheduler in self.schedulers.all():
-            schedulers += (
-                "c['scheduler'].append(%s)" % _generate_class(scheduler))
+            schedulers.append(_generate_class(scheduler))
             modules.append(scheduler.type)
 
         #restructure the imports
