@@ -10,10 +10,6 @@
 
 import os
 import pickle
-try:
-    import paramiko
-except:
-    paramiko = None
 
 from django.db import models
 from django.db.models.signals import post_save
@@ -31,6 +27,7 @@ from loki.signal_receivers import post_delete_bot
 from loki.signal_receivers import post_save_config
 from loki.model_helpers import _generate_class
 from loki.model_helpers import build_bot_run
+from loki.model_helpers import get_ssh
 
 # these are for filters later
 # need to try catch them because syncdb
@@ -48,6 +45,7 @@ except:
 
 
 class Host(models.Model):
+    ssh = get_ssh()
     hostname = models.CharField(max_length=200, unique=True)
     base_dir = models.CharField(max_length=200)
     username = models.CharField(max_length=10, blank=True, null=True)
@@ -56,17 +54,15 @@ class Host(models.Model):
     uptime = property(lambda self: self._uptime())
 
     def _uptime(self):
-        if not paramiko:
+        if not self.ssh:
             return "Paramiko is not installed. Uptime not supported."
 
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(self.host.hostname,
+        self.ssh.connect(self.host.hostname,
             username=self.host.username,
             password=self.host.password,
         allow_agent=True, look_for_keys=True)
-        stdin, stdout, stderr = ssh.exec_command(command)
-        ssh.close()
+        stdin, stdout, stderr = self.ssh.exec_command(command)
+        self.ssh.close()
         return stdout.readline()
 
     def __unicode__(self):
@@ -74,7 +70,7 @@ class Host(models.Model):
 
 
 class Bot(models.Model):
-
+    ssh = get_ssh()
     name = models.SlugField(max_length=25, unique=True)
     alive = property(lambda self: (self.host.id > 1 and self.pid()) or \
                 (self.pid() and \
@@ -144,20 +140,18 @@ class Bot(models.Model):
                 action = '%s %s' % (action, self.path)
             if action:
                 build_bot_run(action.split(' '))
-        elif not paramiko:
+        elif not self.ssh:
             return "Paramiko is not installed. Remote bot management is not supported."
         else:
             # remote bot
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            ssh.connect(self.host.hostname,
+            self.ssh.connect(self.host.hostname,
                         username=self.host.username,
                         password=self.host.password,
                 allow_agent=True, look_for_keys=True)
             if action == 'cfg':
                 content = self.generate_cfg()
                 cfg_file = os.path.join(self.path, self.cfg_file)
-                sftp = ssh.open_sftp()
+                sftp = self.ssh.open_sftp()
                 f = sftp.file(cfg_file, 'w')
                 f.write(content)
                 f.close()
@@ -169,8 +163,8 @@ class Bot(models.Model):
                     command = 'rm -rf %s' % self.path
                 else:
                     command = 'buildbot %s %s' % (action, self.path)
-                stdin, stdout, stderr = ssh.exec_command(command)
-            ssh.close()
+                stdin, stdout, stderr = self.ssh.exec_command(command)
+            self.ssh.close()
 
     def pid(self):
         pid = 0
@@ -183,18 +177,15 @@ class Bot(models.Model):
                 pid_fd.close()
             if pid and not os.path.exists(os.path.join('/proc', pid)):
                 pid = 0
-        elif not paramiko:
+        elif not self.ssh:
             return "Paramiko is not installed. Remote bot management is not supported."
         else:
             # remote bot
-            import paramiko
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            ssh.connect(self.host.hostname,
+            self.ssh.connect(self.host.hostname,
                         username=self.host.username,
                         password=self.host.password,
                 allow_agent=True, look_for_keys=True)
-            sftp = ssh.open_sftp()
+            sftp = self.ssh.open_sftp()
             pid_file = os.path.join(self.path, 'twistd.pid')
             try:
                 f = sftp.file(pid_file, 'r')
@@ -206,7 +197,7 @@ class Bot(models.Model):
                 # for now we'll just assume the file or the proc didn't exist
                 pid = 0
             sftp.close()
-            ssh.close()
+            self.ssh.close()
         return int(pid)
 
 

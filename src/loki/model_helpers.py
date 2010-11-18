@@ -12,6 +12,10 @@ import sys
 import os
 import inspect
 import pickle
+try:
+    import paramiko
+except:
+    paramiko = None
 
 from types import StringType
 from types import UnicodeType
@@ -28,6 +32,14 @@ from twisted.python import usage
 from loki.thread import BuildBotStart
 
 loki_pwd = os.path.abspath('.')
+
+def get_ssh():
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    except:
+        ssh = None
+    return ssh
 
 
 def _generate_class(cls):
