@@ -38,7 +38,7 @@ from loki.forms import BuilderForm
 
 def home(request, master=None, builder=None):
     """
-    TODO: document me.
+    Handles home, Master details and Builder details pages.
     """
     context = {}
     context['bots'] = Master.objects.all()
@@ -48,12 +48,13 @@ def home(request, master=None, builder=None):
         content_type=scheduler_content_type)
     if builder:
         render_template = 'builder'
-        builder = Builder.objects.get(name=builder)
+        master = context['bots'].get(name=master)
+        builder = Builder.objects.get(name=builder, master=master)
         context['builder'] = builder
         context['master'] = builder.master
     elif master:
         render_template = 'master'
-        master = Master.objects.get(name=master)
+        master = context['bots'].get(name=master)
         context['master'] = master
     else:
         render_template = 'home'
