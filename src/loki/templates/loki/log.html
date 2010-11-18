@@ -1,0 +1,6 @@
+{% extends "loki/base.html" %}
+{% load loki_tags %}
+    {% block content %}
+    {% block title %}{{ master.name }} Log{% endblock %}
+    <pre>{% for line in log %}{{ line }}{% endfor %}</pre>
+    {% endblock %}
