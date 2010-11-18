@@ -16,7 +16,9 @@
         {% else %}Stopped{% if user.is_superuser %} :: <a href="{% url loki.views.action 'start',master %}">Start</a>{% endif %}{% endif %}
     {% endblock %}
     {% block content %}
-            {% block title %}Master: {{ master }}{% endblock %}<br>
+            {% block title %}Master: {{ master }}{% endblock %}
+            {% if user.is_superuser %}<a href="{% url loki.views.log master.name %}" title="Master Log File">
+            <img src="/media/loki/images/h-art.gif" alt="Clone" align="right"></a>{% endif %}<br>
             host: {{ master.host }} <a href="http://{{ master.host }}:{{ master.web_port }}">webui</a><br>
             slave/web ports: {{ master.slave_port }}/{{ master.web_port }}<br>
         <div style="float:left;">

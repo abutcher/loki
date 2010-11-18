@@ -213,6 +213,17 @@ class Master(Bot):
     path = property(lambda self: os.path.join(self.host.base_dir, \
                                      BUILDBOT_MASTERS, self.name))
 
+    def get_log(self):
+        log_file = os.path.join(self.path, 'twistd.log')
+        if os.path.exists(log_file):
+            f = open(log_file)
+            log = f.readlines()
+            f.close()
+            return log
+        else:
+            return 'twistd.log does not exist'
+
+
     def gen_ports(self):
         slave_port = filter(lambda x: x, [self.slave_port, BB_SLAVE_PORT_START + self.id])[0]
         web_port = filter(lambda x: x, [self.web_port, BB_WEB_PORT_START + self.id])[0]

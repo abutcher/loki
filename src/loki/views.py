@@ -66,6 +66,9 @@ def home(request, master=None, builder=None):
 
 @user_passes_test(lambda u: u.is_superuser)
 def action(request, action, master, slave=None):
+    """
+    executes a passed action to a master/slave bot
+    """
     masters = Master.objects.none()
     if slave:
         if slave == 'all':
@@ -307,7 +310,25 @@ def import_config(request, type):
 
 
 @user_passes_test(lambda u: u.is_superuser)
+def log(request, master):
+    """
+    display a master's log
+    """
+    bots = Master.objects.all()
+    master = bots.get(name=master)
+    context = {'bots': bots,
+               'master': master,
+               'log': master.get_log(), }
+    return render_to_response('loki/log.html', context,
+                              context_instance=RequestContext(request))
+    
+
+
+@user_passes_test(lambda u: u.is_superuser)
 def clone(request, master, builder):
+    """
+    clone a builder
+    """
     bots = Master.objects.all()
     builder = Builder.objects.get(name=builder, master=bots.get(name=master))
     new_builder = deepcopy(builder)
