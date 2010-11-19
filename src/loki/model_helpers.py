@@ -169,7 +169,8 @@ def build_bot_run(options):
                 except (AttributeError, ValueError):
                     maxfd = 1024
 
-                f = open('%stwistd.log' % options[1], 'a')
+                log_file = os.path.join(options[1], 'twistd.log')
+                f = open(log_file, 'a')
                 sys.stdout = f
                 sys.stderr = f
 
