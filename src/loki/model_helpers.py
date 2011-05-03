@@ -169,31 +169,34 @@ def build_bot_run(options):
                 except (AttributeError, ValueError):
                     maxfd = 1024
 
-                log_file = os.path.join(options[1], 'twistd.log')
-                f = open(log_file, 'a')
-                sys.stdout = f
-                sys.stderr = f
-
-                for fd in range(maxfd):
+                for fd in range(3, maxfd):
                     try:
                         os.close(fd)
                     except OSError:
                     # ERROR, fd wasn't open to begin with (ignored)
                         pass
 
+                log_file = os.path.join(options[1], 'twistd.log')
+                f = open(log_file, 'a')
+                sys.stdout = f
+                sys.stderr = f
+
                 try:
                     # try and rename myself to buildbot
                     import dl
                     libc = dl.open('/lib/libc.so.6')
-                    libc.call('prctl', 15, 'buildbot', 0, 0, 0)
+                    libc.call('prctl', 15, 'buildbot-%s' % command, 0, 0, 0)
                 except:
                     # pass for now, this is kinda experimental
                     pass
 
                 # finally execute the buildbot command
                 if command == "start":
-                    from buildbot.scripts.startup import start
-                    start(so)
+                    try:
+                        from buildbot.scripts.startup import start
+                        start(so)
+                    except SystemExit:
+                        pass
                 elif command == "restart":
                     restart(so)
                 elif command == "reconfig" or command == "sighup":
