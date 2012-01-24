@@ -42,7 +42,6 @@ def home(request, master=None, builder=None):
     """
     context = {}
     context['bots'] = sorted(Master.objects.all(), key=lambda bot: bot.name)
-    #context['bots'] = Master.objects.all()
     context['steps'] = Config.objects.filter(content_type=step_content_type)
     context['status'] = Config.objects.filter(content_type=status_content_type)
     context['scheduler'] = Config.objects.filter(
@@ -50,14 +49,12 @@ def home(request, master=None, builder=None):
     if builder:
         render_template = 'builder'
         master = filter(lambda bot: bot.name == master, context['bots'])[0]
-        #master = context['bots'].get(name=master)
         builder = Builder.objects.get(name=builder, master=master)
         context['builder'] = builder
         context['master'] = builder.master
     elif master:
         render_template = 'master'
         master = filter(lambda bot: bot.name == master, context['bots'])[0]
-        #master = context['bots'].get(name=master)
         context['master'] = master
     else:
         render_template = 'home'
@@ -134,8 +131,6 @@ def config_load(request, type, config_id):
 
 @user_passes_test(lambda u: u.is_superuser)
 def config_step_save(request, bot_id):
-    print "CONFIG_STEP_SAVE"
-    print request
     result = ''
     if request.method == 'POST':
         builder = Builder.objects.get(id=bot_id)
