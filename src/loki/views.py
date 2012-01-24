@@ -41,20 +41,23 @@ def home(request, master=None, builder=None):
     Handles home, Master details and Builder details pages.
     """
     context = {}
-    context['bots'] = Master.objects.all()
+    context['bots'] = sorted(Master.objects.all(), key=lambda bot: bot.name)
+    #context['bots'] = Master.objects.all()
     context['steps'] = Config.objects.filter(content_type=step_content_type)
     context['status'] = Config.objects.filter(content_type=status_content_type)
     context['scheduler'] = Config.objects.filter(
         content_type=scheduler_content_type)
     if builder:
         render_template = 'builder'
-        master = context['bots'].get(name=master)
+        master = filter(lambda bot: bot.name == master, context['bots'])[0]
+        #master = context['bots'].get(name=master)
         builder = Builder.objects.get(name=builder, master=master)
         context['builder'] = builder
         context['master'] = builder.master
     elif master:
         render_template = 'master'
-        master = context['bots'].get(name=master)
+        master = filter(lambda bot: bot.name == master, context['bots'])[0]
+        #master = context['bots'].get(name=master)
         context['master'] = master
     else:
         render_template = 'home'
@@ -131,6 +134,8 @@ def config_load(request, type, config_id):
 
 @user_passes_test(lambda u: u.is_superuser)
 def config_step_save(request, bot_id):
+    print "CONFIG_STEP_SAVE"
+    print request
     result = ''
     if request.method == 'POST':
         builder = Builder.objects.get(id=bot_id)
@@ -158,12 +163,12 @@ def config_step_save(request, bot_id):
             if s:
                 s = s[0]
                 s.val = pickle.dumps(v)
-                s.default=(v==param_type.loads_default())
+                s.default = (v == param_type.loads_default())
                 s.save()
             else:
                 param = StepParam(step=step, type=param_type,
                                   val=pickle.dumps(v),
-                                  default=(v==param_type.loads_default()))
+                                  default=(v == param_type.loads_default()))
                 params_2_add.append(param)
         if params_2_add:
             step.params = params_2_add
@@ -198,12 +203,12 @@ def config_status_save(request, bot_id):
             if s:
                 s = s[0]
                 s.val = pickle.dumps(v)
-                s.default=(v==param_type.loads_default())
+                s.default = (v == param_type.loads_default())
                 s.save()
             else:
                 param = StatusParam(status=status, type=param_type,
                                   val=pickle.dumps(v),
-                                  default=(v==param_type.loads_default()))
+                                  default=(v == param_type.loads_default()))
                 params_2_add.append(param)
 
         if params_2_add:
@@ -321,7 +326,6 @@ def log(request, master):
                'log': master.get_log(), }
     return render_to_response('loki/log.html', context,
                               context_instance=RequestContext(request))
-    
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -352,7 +356,6 @@ def clone(request, master, builder):
                 param.save()
         return HttpResponseRedirect(reverse('loki.views.home',
                     args=[new_builder.master.name, new_builder.name]))
-            
     else:
         form = BuilderForm(instance=new_builder)
     context = {'form': form,
