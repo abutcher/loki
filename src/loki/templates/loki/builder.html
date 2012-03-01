@@ -18,7 +18,7 @@
         {% if user.is_superuser %}<a href="{% url loki.views.clone builder.master.name,builder.name %}" title="Clone this Builder">
             <img src="/media/loki/images/cat-li.gif" alt="Clone" align="right"></a>{% endif %}<br>
         master: <a href="{% url loki.views.home builder.master %}">{{ builder.master }}</a><br>
-        slaves: {{ builder.slaves.all }}<br>
+        slaves: {% for s in builder.slaves.all %} {{ s.name }} {% endfor %}<br>
         status: <a href="http://{{ builder.master.host.hostname }}:{{ builder.master.web_port }}/builders/{{ builder }}">
                     http://{{ builder.master.host.hostname }}:{{ builder.master.web_port }}/builders/{{ builder }}</a><br>
         steps:<br>
