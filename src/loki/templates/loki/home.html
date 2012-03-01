@@ -27,7 +27,7 @@
             <div style="float:left;">
             <ul>Hosts
             {% for host in hosts %}
-            <li>{{ host.hostname }}: {{ host.uptime }}<br> {{ host.slaves.all }} </li>
+            <li>{{ host.hostname }}: {{ host.uptime }}<br> {% for s in host.slaves.all %} {{ s.name }} {% endfor %} </li>
             {% endfor %}
             </ul>
             </div>
