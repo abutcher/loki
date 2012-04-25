@@ -28,10 +28,12 @@ from buildbot.scripts.runner import restart
 from buildbot.scripts.runner import stop
 from buildbot.interfaces import BuildbotNotRunningError
 from twisted.python import usage
-
 from loki.thread import BuildBotStart
 
 loki_pwd = os.path.abspath('.')
+
+def acceptable_functions():
+    return ['WithProperties']
 
 def get_ssh():
     try:
@@ -48,9 +50,16 @@ def _generate_class(cls):
     """
     gcls = cls.type.module.split('.')[-1]
     gprm = []
+
     for param in cls.params.all():
-        if type(param.loads_val()) == StringType \
-                or type(param.loads_val()) == UnicodeType:
+        # determine if param contains an acceptable function
+        contains_function = False
+        for function in acceptable_functions():
+            if function in param.loads_val():
+                contains_function = True
+        if (type(param.loads_val()) == StringType \
+                or type(param.loads_val()) == UnicodeType) \
+                and not contains_function:
             pair_form = "%s='%s'"
         # buildbot doesn't like unicode added this case to the
         # case above

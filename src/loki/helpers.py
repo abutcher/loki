@@ -15,6 +15,7 @@ from loki.models import step_content_type
 from loki.models import scheduler_content_type
 from loki.models import Config, ConfigParam
 from loki.model_helpers import introspect_module
+from loki.model_helpers import acceptable_functions
 
 def config_importer(module, type):
     content_types = {
@@ -44,6 +45,12 @@ def type_sniffer(value):
     '''
     takes a string as input and casts it to a typed value
     '''
+    # If dealing with an acceptable function in a value string, just
+    # leave it alone because we don't want to lose the functions
+    # formatting.
+    for function in acceptable_functions():
+        if function in value:
+            return value
     value = value.strip()
     if value:
         # strip unicode and force a str
