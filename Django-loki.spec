@@ -43,9 +43,6 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %doc AUTHORS COPYING LICENSE
 %dir %{_datadir}/django/apps/loki/
-%if 0%{?rhel} <= 5
-%{python_sitelib}/*egg-info
-%endif
 %{_datadir}/django/apps/loki/*
 
 %changelog

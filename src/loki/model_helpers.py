@@ -55,7 +55,8 @@ def _generate_class(cls):
         # determine if param contains an acceptable function
         contains_function = False
         for function in acceptable_functions():
-            if function in param.loads_val():
+            if (param.loads_val() != None \
+                    and param.loads_val().find(function) != -1):
                 contains_function = True
         if (type(param.loads_val()) == StringType \
                 or type(param.loads_val()) == UnicodeType) \
