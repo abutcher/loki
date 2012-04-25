@@ -2,14 +2,14 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name:           Django-loki
-Version:        0.10.1
-Release:        2%{?dist}
+Version:        0.10.3
+Release:        1%{?dist}
 Summary:        A Django web interface to manage Buildbots
 
 Group:          Applications/Internet
 License:        GPL3
 URL:            https://fedorahosted.org/loki
-Source0:        https://fedorahosted.org/released/loki/%{name}-%{version}.tar.gz
+Source0:        dist/%{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:      noarch
@@ -44,11 +44,12 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING LICENSE
 %dir %{_datadir}/django/apps/loki/
 %{_datadir}/django/apps/loki/*
-%if 0%{?rhel}
-%{python_sitelib}/*egg-info
-%endif
 
 %changelog
+* Wed Apr 25 2012 Andrew Butcher <abutcher@redhat.com> - 0.10.3-1
+- add sorting to nav
+- updates to support WithProperties build form entries
+
 * Wed Aug 25 2010 Dan Radez <dradez@redhat.com> - 0.9.0-1
 - adding conditionals to handle egg info
 
